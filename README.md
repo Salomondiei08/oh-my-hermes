@@ -217,7 +217,7 @@ bash /tmp/oh-my-hermes/scripts/bootstrap.sh
 | **QA** | Reviews PRs, runs health checks, writes founder summary | Review |
 | **Ops** | Deploys, monitors production, handles incidents, sends notifications | Done + monitoring |
 
-Agent definitions live in `agents/` and are installed to `~/.hermes/agents/` alongside skills.
+Role definitions live in `agents/` and are installed to `~/.hermes/agents/`. Running `scripts/setup-cto.sh` creates the actual Hermes profiles (`cto`, `pm`, `dev`, `qa`, `ops`) and injects each role definition — that is what makes the agents active, not the role files alone.
 
 ---
 

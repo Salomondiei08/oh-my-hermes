@@ -71,9 +71,9 @@ Backlog       In Progress    Review         Awaiting Approval    Done
 Cron jobs Hermes sets up automatically:
 
 ```bash
-hermes cron add "*/15 * * * *" "Health check [production-url]/api/health"
-hermes cron add "0 9 * * *"    "Send cto-status-report to founder"
+hermes cron add "*/15 * * * *" "Run health-check on [production-url]"
 hermes cron add "0 * * * *"    "Run auto-issue-triage for [owner/repo]"
+hermes cron add "0 9 * * *"    "Send cto-status-report to founder"
 ```
 
 ## Multi-agent execution

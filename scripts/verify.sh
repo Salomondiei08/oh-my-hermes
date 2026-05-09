@@ -74,6 +74,28 @@ check "github-ops"         "$WORKFLOWS_DIR/github-ops.md"
 check "cto-loop"           "$WORKFLOWS_DIR/cto-loop.md"
 
 echo ""
+echo "Hermes profiles (run setup-cto.sh if missing):"
+PROFILES_DIR="$HERMES_DIR/profiles"
+for profile in cto pm dev qa ops; do
+  if [ -d "$PROFILES_DIR/$profile" ]; then
+    echo "[OK]      profile: $profile"
+    PASS=$((PASS + 1))
+  else
+    echo "[MISSING] profile: $profile — run: bash scripts/setup-cto.sh"
+    FAIL=$((FAIL + 1))
+  fi
+done
+
+echo ""
+echo "Kanban (run setup-cto.sh if missing):"
+if command -v hermes &>/dev/null && hermes kanban list &>/dev/null 2>&1; then
+  echo "[OK]      hermes kanban accessible"
+  PASS=$((PASS + 1))
+else
+  echo "[SKIP]    hermes not installed or kanban not initialized"
+fi
+
+echo ""
 echo "Scripts:"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 check "bootstrap.sh"    "$SCRIPT_DIR/bootstrap.sh"
