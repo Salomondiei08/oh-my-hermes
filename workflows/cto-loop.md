@@ -86,14 +86,22 @@ Hermes supports spawning up to 3 parallel sub-agents. In the CTO loop:
 
 ## Setup
 
-Tell Hermes once:
+Run `scripts/setup-cto.sh` first (creates profiles, kanban, crons). Then tell Hermes:
 
 ```
 Set up the CTO loop for [owner/repo]. 
 Send approvals to me on [Telegram / Slack / Discord / WhatsApp].
 ```
 
-What Hermes does:
+Then lock persistent focus with `/goal` (Hermes v0.13+):
+
+```
+/goal Manage github.com/[owner/repo] as CTO. Triage issues hourly, implement top priority, send founder approval before merging. Never ship without YES.
+```
+
+`/goal` prevents context drift across long sessions — without it agents lose focus after many turns. Re-run `/goal` any time you restart the CTO session.
+
+What Hermes does on setup:
 1. Saves `github-repo` and `approval-platform` to memory
 2. Runs `hermes cron add` for triage, health check, and morning report
 3. Confirms setup and shows the live kanban board
@@ -114,6 +122,12 @@ skip issue #42, it's blocked on design
 make triage run every 30 minutes
 show me the kanban board
 what is the Dev Agent working on right now?
+```
+
+Use `/steer` (v0.13+) to course-correct mid-run without interrupting the current task:
+```
+/steer prioritize the payment bug above everything else
+/steer skip tests this sprint, we need to ship
 ```
 
 ## What the founder actually does

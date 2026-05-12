@@ -2,8 +2,8 @@
 
 [![Version](https://img.shields.io/badge/version-1.0.0-4ade80?style=flat-square)](https://github.com/salomondiei08/oh-my-hermes/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
-[![Hermes](https://img.shields.io/badge/Hermes-v0.9%2B-orange?style=flat-square)](https://hermes-agent.nousresearch.com)
-[![Skills](https://img.shields.io/badge/skills-20-brightgreen?style=flat-square)](#skills-included)
+[![Hermes](https://img.shields.io/badge/Hermes-v0.13%2B-orange?style=flat-square)](https://hermes-agent.nousresearch.com)
+[![Skills](https://img.shields.io/badge/skills-21-brightgreen?style=flat-square)](#skills-included)
 [![Agents](https://img.shields.io/badge/agents-5-blue?style=flat-square)](#agents)
 [![Stack](https://img.shields.io/badge/stack-Markdown%20%2B%20Bash-zinc?style=flat-square)](#)
 [![Deploy](https://img.shields.io/badge/deploy-Vercel-black?style=flat-square)](https://vercel.com)
@@ -72,7 +72,7 @@ YOU  ──  Telegram / Slack / Discord / terminal
 │                    │  Backlog → In Progress → Review → Done   │  │
 │                    └─────────────────────────────────────────┘  │
 │                                                                 │
-│  Persistent memory · 20 skills · 5 workflows · cron jobs        │
+│  Persistent memory · 21 skills · 5 workflows · cron jobs        │
 └──────┬─────────────────────────────────────────────────────────┘
        │
        │  invokes when needed
@@ -113,7 +113,7 @@ Hermes Agent has persistent memory, autonomous skill generation, 19+ messaging p
 
 Oh My Hermes fills that gap with:
 
-- **20 skills** — covering the full app lifecycle, GitHub ops, and autonomous CTO loop
+- **21 skills** — covering the full app lifecycle, GitHub ops, and autonomous CTO loop
 - **5 specialized agents** — CTO, PM, Dev, QA, Ops — each with defined responsibilities and kanban ownership
 - **Hermes-native framing** — designed for Hermes as the primary operator, not as a routing layer requiring human intervention
 - **VPS-ready** — works with Hermes running on a $5/month server or your local machine
@@ -183,7 +183,7 @@ RUNNING APP — Hermes watches it
 curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
 ```
 
-Installs 20 skills and 5 workflows to `~/.hermes/skills/` and `~/.hermes/workflows/`.
+Installs 21 skills and 5 workflows to `~/.hermes/skills/` and `~/.hermes/workflows/`.
 
 ### Bootstrap a new project
 
@@ -269,6 +269,7 @@ bash /tmp/oh-my-hermes/scripts/bootstrap.sh
 | `await-merge-approval` | Sends PR summary to founder via chat, blocks until YES/NO reply, merges or iterates |
 | `kanban-task` | Creates and updates Hermes kanban cards — used by every agent at every stage |
 | `cto-status-report` | Reads full kanban + health log, sends plain-English morning report to founder |
+| `backup-hermes-data` | Tarballs `~/.hermes/` to S3, Dropbox, or local — run on cron before any upgrade |
 
 ---
 
@@ -434,7 +435,7 @@ See the `cto-loop` workflow and `auto-issue-triage`, `review-github-pr`, and `aw
 
 | Requirement | Version |
 |---|---|
-| Hermes Agent | v0.9+ (tested on v0.13) |
+| Hermes Agent | v0.13+ |
 | Bash | 3.2+ |
 | For deploy skills | Vercel CLI + account |
 | For database skills | Supabase CLI + account |
@@ -458,7 +459,7 @@ Claude Code and Codex are optional. Hermes handles the full workflow without the
 ## Roadmap
 
 **V1 — current**
-20 skills, 5 agent profiles, 5 workflows, AGENTS.md conventions, one-command CTO setup, Vercel + Supabase + GitHub ops, scripts, full docs, example app.
+21 skills, 5 agent profiles, 5 workflows, AGENTS.md conventions, one-command CTO setup, Vercel + Supabase + GitHub ops, scripts, full docs, example app.
 
 **V2 — planned**
 Cron-based health monitoring (Hermes watches production on a schedule), incident creation skill, post-deploy automated tests, staging → production promotion workflow.

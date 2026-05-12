@@ -1,12 +1,13 @@
 ---
 name: kanban-task
 description: Use when any agent starts, updates, or completes a unit of work that should be visible on the Hermes kanban board
-version: 1.0.0
+version: 1.1.0
 tags: [kanban, task, tracking, ops, autonomous]
 metadata:
   hermes:
     tags: [kanban, tracking, agents]
     requires_toolsets: [terminal]
+    min_version: "0.13"
 ---
 
 ## Overview
@@ -39,9 +40,11 @@ Save returned task ID to Hermes memory: key `task-id-issue-[n]`.
 
 **Claim and move to in-progress (Dev Agent):**
 ```bash
-hermes kanban claim [task-id]
+hermes kanban claim [task-id] --heartbeat 5m
 hermes kanban comment [task-id] "Dev Agent started at [time]. Engine: [hermes/claude-code/codex]"
 ```
+
+`--heartbeat 5m` sends a keep-alive every 5 minutes. If the agent crashes or goes silent, Hermes v0.13+ detects a missed heartbeat (zombie detection) and auto-retries the task from backlog. Always use heartbeat for long-running implementation tasks.
 
 **Move to review (Dev Agent, after PR created):**
 ```bash
@@ -72,11 +75,15 @@ Then load `send-notification` — CTO Agent is alerted immediately.
 | Agent | Action | Command |
 |---|---|---|
 | PM | Issue triaged | `kanban_create` |
-| Dev | Starting work | `hermes kanban claim [id]` |
+| Dev | Starting work | `hermes kanban claim [id] --heartbeat 5m` |
 | Dev | PR created | `kanban_comment [id] "PR #n: url"` |
 | QA | Review passed | `kanban_comment [id] "QA passed..."` |
 | Ops | Deployed healthy | `hermes kanban complete [id]` |
 | Any | Cannot proceed | `hermes kanban block [id]` |
+
+## Zombie recovery (v0.13+)
+
+If a Dev Agent crashes mid-task, Hermes detects the missed heartbeat and moves the card back to Backlog automatically. The next agent that claims it gets a fresh start. No manual intervention needed unless the card is blocked 3+ times (Hermes surfaces this in `hermes kanban watch` as a stuck card).
 
 ## Live monitoring
 

@@ -56,6 +56,7 @@ check "review-github-pr"           "$SKILLS_DIR/review-github-pr.md"
 check "await-merge-approval"       "$SKILLS_DIR/await-merge-approval.md"
 check "kanban-task"                "$SKILLS_DIR/kanban-task.md"
 check "cto-status-report"          "$SKILLS_DIR/cto-status-report.md"
+check "backup-hermes-data"         "$SKILLS_DIR/backup-hermes-data.md"
 
 echo ""
 echo "Agents:"

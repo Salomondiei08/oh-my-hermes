@@ -244,4 +244,13 @@ else
   echo "  hermes gateway start      # start messaging gateway"
   echo "  hermes profile use cto    # switch to CTO profile"
   echo "  hermes kanban watch       # open live kanban board"
+  echo ""
+  echo "Then lock persistent focus (Hermes v0.13+):"
+  if [ -n "$GITHUB_REPO" ]; then
+    echo "  /goal Manage $GITHUB_REPO as CTO. Triage issues hourly, implement top"
+    echo "        priority, get founder approval before merging. Never ship without YES."
+  else
+    echo "  /goal Manage [owner/repo] as CTO. Triage issues hourly, implement top"
+    echo "        priority, get founder approval before merging. Never ship without YES."
+  fi
 fi
