@@ -107,7 +107,9 @@ supabase login
 ## Step 5 — Install Oh My Hermes
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
+git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes
+cd /tmp/oh-my-hermes
+bash install.sh
 ```
 
 Verify:
@@ -128,7 +130,7 @@ export GITHUB_USERNAME=your-github-username
 export GITHUB_REPO=owner/repo
 export PRODUCTION_URL=https://yourapp.vercel.app   # optional but recommended
 
-bash /path/to/oh-my-hermes/scripts/setup-cto.sh
+OH_MY_HERMES_SETUP_CTO_CONFIRM=1 bash /path/to/oh-my-hermes/scripts/setup-cto.sh
 ```
 
 The script:
@@ -155,7 +157,7 @@ bash /path/to/oh-my-hermes/scripts/bootstrap.sh
 This creates:
 - `AGENTS.md` — fill in your project name, stack, and any constraints
 - `.env.example` — fill in and copy to `.env.local`
-- `src/app/api/health/route.ts` — the `/api/health` endpoint Hermes checks after every deploy
+- `src/app/api/health/route.ts` — the `/api/health` endpoint Hermes checks after every deploy (created only when Next.js is detected)
 
 **Fill in AGENTS.md.** This is important — it tells the Dev Agent what stack to use and what conventions to follow.
 

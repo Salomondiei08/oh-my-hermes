@@ -188,8 +188,12 @@ Follow the [Hermes quickstart](https://hermes-agent.nousresearch.com/docs/gettin
 **Step 2 — Install Oh My Hermes**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
+git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes
+cd /tmp/oh-my-hermes
+bash install.sh
 ```
+
+`curl | bash` is supported too; the installer self-clones a temporary copy when repo files are not present.
 
 **Step 3 — Message your bot**
 
@@ -321,7 +325,9 @@ hermes model        # choose your provider (Anthropic, OpenAI, etc.)
 hermes gateway setup && hermes gateway start   # connect Telegram or Slack
 
 # Then install Oh My Hermes
-curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
+git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes
+cd /tmp/oh-my-hermes
+bash install.sh
 
 # Message your bot: "set up the CTO loop"
 ```
@@ -340,8 +346,8 @@ docker run -d --restart=always \
 | Script | What it does |
 |---|---|
 | `install.sh` | Installs all skills, workflows, and agent definitions |
-| `scripts/bootstrap.sh` | Creates `AGENTS.md`, `.env.example`, health endpoint in a project |
-| `scripts/setup-cto.sh` | Creates profiles, initializes kanban, schedules crons |
+| `scripts/bootstrap.sh` | Creates `AGENTS.md`, `.env.example`, and a Next.js health endpoint only when Next.js is detected |
+| `scripts/setup-cto.sh` | Creates profiles, initializes kanban, schedules crons after explicit confirmation |
 | `scripts/verify.sh` | Checks everything is installed correctly |
 | `scripts/uninstall.sh` | Removes all Oh My Hermes files from `~/.hermes/` |
 

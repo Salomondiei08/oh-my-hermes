@@ -5,7 +5,7 @@
 
 set -e
 
-HERMES_DIR="$HOME/.hermes"
+HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
 AGENTS_DIR="$HERMES_DIR/agents"
 
 PASS=0
@@ -37,6 +37,23 @@ if [ ! -d "$AGENTS_DIR" ]; then
   exit 1
 fi
 ok "~/.hermes/agents/ exists"
+
+if [ "${OH_MY_HERMES_SETUP_CTO_CONFIRM:-}" != "1" ]; then
+  echo ""
+  echo "This script has side effects: creates Hermes profiles, checks GitHub auth,"
+  echo "writes Hermes memory, and schedules cron jobs."
+  if [ -t 0 ]; then
+    read -r -p "Continue? [y/N] " confirm
+    if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+      echo "Cancelled."
+      exit 0
+    fi
+  else
+    echo "[ERROR] Refusing unattended CTO setup without explicit confirmation."
+    echo "Re-run with: OH_MY_HERMES_SETUP_CTO_CONFIRM=1 bash scripts/setup-cto.sh"
+    exit 1
+  fi
+fi
 
 MISSING_AGENTS=0
 for agent in cto pm dev qa ops; do
@@ -111,7 +128,7 @@ if [ -z "$GITHUB_TOKEN" ]; then
   echo "         Required permissions: Contents R/W, Issues R/W, Pull requests R/W, Metadata R"
   echo ""
   echo "         Then:"
-  echo "         export GITHUB_TOKEN=your-token"
+  echo "         export GITHUB_TOKEN=***"
   echo "         echo \"\$GITHUB_TOKEN\" | gh auth login --with-token"
 else
   if command -v gh &>/dev/null; then

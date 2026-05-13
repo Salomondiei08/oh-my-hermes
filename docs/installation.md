@@ -63,7 +63,7 @@ bash /path/to/oh-my-hermes/scripts/bootstrap.sh
 Creates:
 - `AGENTS.md` — review and fill in the Architecture and Engine Guidance sections
 - `.env.example` — all expected variables with placeholder values
-- `src/app/api/health/route.ts` — working `/health` endpoint (Next.js App Router)
+- `src/app/api/health/route.ts` — working `/health` endpoint when the project is detected as Next.js App Router
 
 Bootstrap is idempotent. Existing files are not overwritten.
 

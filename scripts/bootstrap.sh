@@ -113,10 +113,22 @@ else
 fi
 
 # ── Health endpoint ──────────────────────────────────────────────────────────
-HEALTH_PATH="$PROJECT_DIR/src/app/api/health/route.ts"
-if [ ! -f "$HEALTH_PATH" ]; then
-  mkdir -p "$(dirname "$HEALTH_PATH")"
-  cat > "$HEALTH_PATH" << 'HEALTH_EOF'
+# Only create the Next.js App Router health endpoint when the project actually
+# looks like a Next.js app. Otherwise bootstrap should stay framework-neutral.
+IS_NEXT_APP=0
+if [ -f "$PROJECT_DIR/next.config.js" ] || [ -f "$PROJECT_DIR/next.config.mjs" ] || [ -f "$PROJECT_DIR/next.config.ts" ]; then
+  IS_NEXT_APP=1
+elif [ -f "$PROJECT_DIR/package.json" ] && grep -Eq '"next"[[:space:]]*:' "$PROJECT_DIR/package.json"; then
+  IS_NEXT_APP=1
+elif [ -d "$PROJECT_DIR/src/app" ] || [ -d "$PROJECT_DIR/app" ]; then
+  IS_NEXT_APP=1
+fi
+
+if [ "$IS_NEXT_APP" -eq 1 ]; then
+  HEALTH_PATH="$PROJECT_DIR/src/app/api/health/route.ts"
+  if [ ! -f "$HEALTH_PATH" ]; then
+    mkdir -p "$(dirname "$HEALTH_PATH")"
+    cat > "$HEALTH_PATH" << 'HEALTH_EOF'
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -127,10 +139,13 @@ export async function GET() {
   });
 }
 HEALTH_EOF
-  echo "[CREATED] src/app/api/health/route.ts"
-  CREATED=$((CREATED + 1))
+    echo "[CREATED] src/app/api/health/route.ts"
+    CREATED=$((CREATED + 1))
+  else
+    echo "[SKIP]    src/app/api/health/route.ts already exists"
+  fi
 else
-  echo "[SKIP]    src/app/api/health/route.ts already exists"
+  echo "[SKIP]    Next.js app not detected — health endpoint not created"
 fi
 
 # ── .gitignore guard ─────────────────────────────────────────────────────────

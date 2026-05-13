@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-HERMES_DIR="$HOME/.hermes"
+HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
 SKILLS_DIR="$HERMES_DIR/skills"
 WORKFLOWS_DIR="$HERMES_DIR/workflows"
 PASS=0
@@ -78,15 +78,14 @@ check "github-ops"         "$WORKFLOWS_DIR/github-ops.md"
 check "cto-loop"           "$WORKFLOWS_DIR/cto-loop.md"
 
 echo ""
-echo "Hermes profiles (run setup-cto.sh if missing):"
+echo "Hermes profiles (optional; run setup-cto.sh if missing):"
 PROFILES_DIR="$HERMES_DIR/profiles"
-for profile in cto pm dev qa ops; do
+for profile in cto pm dev qa ops security; do
   if [ -d "$PROFILES_DIR/$profile" ]; then
     echo "[OK]      profile: $profile"
     PASS=$((PASS + 1))
   else
-    echo "[MISSING] profile: $profile — run: bash scripts/setup-cto.sh"
-    FAIL=$((FAIL + 1))
+    echo "[SKIP]    profile: $profile — created by: bash scripts/setup-cto.sh"
   fi
 done
 
@@ -118,4 +117,5 @@ if [ "$FAIL" -eq 0 ]; then
 else
   echo ""
   echo "Install incomplete — run install.sh to fix missing items."
+  exit 1
 fi
