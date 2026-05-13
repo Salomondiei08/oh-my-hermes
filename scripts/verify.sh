@@ -80,7 +80,7 @@ check "cto-loop"           "$WORKFLOWS_DIR/cto-loop.md"
 echo ""
 echo "Hermes profiles (run setup-cto.sh if missing):"
 PROFILES_DIR="$HERMES_DIR/profiles"
-for profile in cto pm dev qa ops; do
+for profile in cto pm dev qa ops security; do
   if [ -d "$PROFILES_DIR/$profile" ]; then
     echo "[OK]      profile: $profile"
     PASS=$((PASS + 1))

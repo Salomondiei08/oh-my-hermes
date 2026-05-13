@@ -22,7 +22,7 @@ https://hermes-agent.nousresearch.com/docs/getting-started/quickstart
 curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
 ```
 
-Installs 22 skills, 5 workflows, and 6 agent role definitions into `~/.hermes/`.
+Installs 23 skills, 5 workflows, and 6 agent role definitions into `~/.hermes/`.
 
 ---
 
