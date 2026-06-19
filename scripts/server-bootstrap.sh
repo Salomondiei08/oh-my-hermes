@@ -3,6 +3,8 @@
 
 set -euo pipefail
 
+export PATH="$HOME/.local/bin:$HOME/.hermes/hermes-agent/venv/bin:$PATH"
+
 PROJECT="default"
 REPO=""
 PRODUCTION_URL=""

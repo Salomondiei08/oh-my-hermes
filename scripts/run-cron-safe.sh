@@ -3,6 +3,8 @@
 
 set -euo pipefail
 
+export PATH="$HOME/.local/bin:$HOME/.hermes/hermes-agent/venv/bin:$PATH"
+
 HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
 PROJECT="default"
 NAME="cron"

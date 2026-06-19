@@ -5,6 +5,8 @@
 
 set -e
 
+export PATH="$HOME/.local/bin:$HOME/.hermes/hermes-agent/venv/bin:$PATH"
+
 HERMES_DIR="$HOME/.hermes"
 AGENTS_DIR="$HERMES_DIR/agents"
 
