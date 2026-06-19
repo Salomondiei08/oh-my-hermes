@@ -42,7 +42,7 @@ That means Hermes already has the primitives for a product-building loop. Oh My 
 
 The idea behind Oh My Hermes
 
-Oh My Hermes is a skill pack: 23 skills, 6 agent role definitions, and 5 workflows.
+Oh My Hermes is a skill pack: 30 skills, 7 agent role definitions, and 5 workflows.
 
 The goal is simple:
 
@@ -82,7 +82,9 @@ Install Oh My Hermes on this project. Follow the agent installation guide at git
 
 The agent handles the install and verification. Then you message your Hermes bot: set up the CTO loop
 
-It asks for your GitHub repository, walks you through creating a fine-grained token with exact steps through the GitHub UI, asks for your production URL and what time you want your daily report, and configures everything. You never need to open the terminal again.
+It inspects the project first, asks at most three useful questions with sensible
+defaults, and keeps moving if you skip them. GitHub and production monitoring can
+be connected when they become relevant.
 
 
 From idea to product
@@ -105,15 +107,11 @@ A normal AI assistant might jump straight into code.
 
 Oh My Hermes tries to slow down in the right places.
 
-First, it clarifies the product.
+First, it reads what already exists and clarifies only what materially changes
+the product.
 
-Who is the dashboard for?
-
-What decisions should it help you make?
-
-Where does the data come from?
-
-What is the smallest useful version?
+It may ask who the dashboard is for, what decision it should support, or what the
+smallest useful version is. It gives defaults and continues if you do not answer.
 
 Then it writes a product brief.
 
@@ -138,9 +136,12 @@ Step 1: The founder gives a rough idea or GitHub issue.
 
 Hermes does not treat the first sentence as the final spec. If the request is unclear, it asks. If it is clear enough, it turns the request into a structured brief.
 
-Step 2: The PM Agent turns it into buildable work.
+Step 2: The Product Agent and Designer turn it into buildable work.
 
-It writes the "what", the "why", and the acceptance criteria. Not vague criteria like "it works." Concrete checks like "the dashboard loads in under 3 seconds and shows active users, failed payments, and open tickets."
+Product writes the "what", the "why", and the acceptance criteria. Designer
+defines the user flow, responsive behavior, and important states. Not vague
+criteria like "it works." Concrete checks like "the dashboard loads in under 3
+seconds and shows active users, failed payments, and open tickets."
 
 Step 3: The Dev Agent builds.
 
@@ -177,13 +178,18 @@ The promise is not "AI wrote some code."
 The promise is "the product moved."
 
 
-The six agents and what they own
+The seven agents and what they own
 
 [DIAGRAM — see prompt at bottom of article]
 
-CTO is the main Hermes session. It keeps the product moving. It watches the kanban, delegates to the other five agents, and is the one that talks to you. Its job is not to write code. Its job is to make sure the right work happens in the right order.
+CTO is the main Hermes session. It keeps the whole product lifecycle moving,
+delegates to the other six agents, and is the one that talks to you.
 
-PM turns ideas into buildable tasks. It owns the backlog, asks clarification questions, scores issues, and writes tickets with acceptance criteria. It protects the Dev Agent from guessing.
+Product turns ideas, feedback, analytics, and issues into buildable outcomes. It
+also owns positioning, SEO, launch strategy, and content planning.
+
+Designer owns user flows, visual direction, responsive behavior, rendered
+verification, and optional HyperFrames launch videos with licensed music.
 
 Dev builds the product. It owns in-progress work, chooses the right engine, implements the feature or fix, commits carefully, and opens the PR.
 
@@ -206,7 +212,9 @@ The thing worth understanding is that Oh My Hermes is not asking Hermes to do an
 
 The kanban is native. Hermes already has a board where tasks can move from idea to work to review to done.
 
-The scheduling is native. Hourly triage, daily reports, health checks, and weekly security reviews are cron jobs pointing at skill prompts.
+The scheduling is native. Product review, daily reports, health checks, log
+observation, and recurring security reviews are cron jobs pointing at skill
+prompts.
 
 The profiles and delegation are native. Hermes can run different named roles with different instructions and shared project context.
 
@@ -302,7 +310,15 @@ Header image:
 Wide dark banner. A founder sketching an app idea on a notebook beside a glowing terminal. On the terminal: "idea -> brief -> build -> ship". Cinematic green light, dark background, clean product-building mood, no text overlay needed.
 
 Build loop diagram (place after "From idea to product" heading):
-Clean horizontal flow diagram on dark background. Title: "From idea to product". Nodes left to right: Rough idea -> Product brief -> Buildable tasks -> Dev Agent builds -> Security and QA guardrails -> Founder approval -> Production -> Monitoring. Each node is a rounded rectangle. Dark navy background. White labels and connecting arrows. Below Dev Agent, a small fork showing Hermes / Codex / Claude Code. Minimal, no decorative elements.
+Clean horizontal flow diagram on dark background. Title: "From idea to product".
+Nodes left to right: Rough idea -> Product brief -> Design -> Build -> Security
+and Reviewer -> Founder approval -> Production -> Learn. White labels and
+connecting arrows. Below Build, a small fork showing Hermes / Codex / Claude
+Code. Minimal, no decorative elements.
 
-Agents grid (place after "The six agents" heading):
-Six card grid on dark background. Title: "The 6 Oh My Hermes agents". Each card: agent name at top, one-line role in the middle, product-building ownership at the bottom in smaller text. Cards: CTO / Keeps product moving / Orchestration — PM / Turns ideas into tasks / Planning — Dev / Builds features and fixes / Implementation — Security / Protects the build / Risk checks — QA / Confirms it works / Product verification — Ops / Ships and monitors / Production. Dark cards on darker background. White text. Clean grid.
+Agents grid (place after "The seven agents" heading):
+Seven-card grid on dark background. Title: "The 7 Oh My Hermes agents". Cards:
+CTO / Product lifecycle; Product / Brief and growth; Designer / UX and launch
+creative; Builder / Working increments; Security / Risk checks; Reviewer /
+Product verification; Ops / Release and reliability. Dark cards, white text,
+clean grid, no decorative elements.

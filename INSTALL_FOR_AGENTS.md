@@ -32,7 +32,11 @@ Non-interactive install is also supported. The installer will clone a temporary 
 curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
 ```
 
+<<<<<<< HEAD
 Installs 23 skills, 5 workflows, and 6 agent role definitions into `~/.hermes/` or `$HERMES_HOME` when set.
+=======
+Installs 30 skills, 5 workflows, and 7 agent role definitions into `~/.hermes/`.
+>>>>>>> 92decb2 (docs: document product-focused Hermes workflow)
 
 ---
 
@@ -72,6 +76,7 @@ export PRODUCTION_URL=<https://yourapp.vercel.app>   # optional
 bash /tmp/oh-my-hermes/scripts/setup-cto.sh
 ```
 
+<<<<<<< HEAD
 For unattended setup, pass explicit confirmation:
 
 ```bash
@@ -79,6 +84,11 @@ OH_MY_HERMES_SETUP_CTO_CONFIRM=1 bash /tmp/oh-my-hermes/scripts/setup-cto.sh
 ```
 
 Creates Hermes profiles (`cto`, `pm`, `dev`, `qa`, `ops`, `security`), initializes kanban, and schedules up to 4 cron jobs.
+=======
+Creates Hermes profiles (cto, pm, designer, dev, qa, security, ops), initializes
+kanban, and schedules available product, health, logs, report, and security jobs
+without duplicating existing named jobs.
+>>>>>>> 92decb2 (docs: document product-focused Hermes workflow)
 
 ---
 
@@ -87,7 +97,8 @@ Creates Hermes profiles (`cto`, `pm`, `dev`, `qa`, `ops`, `security`), initializ
 In Hermes v0.13+ environments that support `/goal`, run:
 
 ```
-/goal Manage [owner/repo] as CTO. Triage issues hourly, implement top priority, get founder approval before merging. Never ship without YES.
+/goal Build, launch, operate, and improve [product]. Keep one outcome active,
+verify it before shipping, and ask only at irreversible boundaries.
 ```
 
 If `/goal` is not available in your Hermes version, save this intent in your project `AGENTS.md` and/or Hermes memory instead.
@@ -98,10 +109,12 @@ If `/goal` is not available in your Hermes version, save this intent in your pro
 
 | Path | Contents |
 |---|---|
-| `~/.hermes/skills/` | 23 skills — full app lifecycle + CTO loop |
+<<<<<<< HEAD
+| `~/.hermes/skills/` | 30 skills — complete product lifecycle + CTO loop |
+>>>>>>> 92decb2 (docs: document product-focused Hermes workflow)
 | `~/.hermes/workflows/` | 5 workflows |
-| `~/.hermes/agents/` | 6 agent role definitions |
-| `~/.hermes/profiles/` | 6 active profiles (after setup-cto.sh) |
+| `~/.hermes/agents/` | 7 agent role definitions |
+| `~/.hermes/profiles/` | 7 active profiles (after setup-cto.sh) |
 
 ---
 

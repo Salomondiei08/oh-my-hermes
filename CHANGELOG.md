@@ -1,5 +1,46 @@
 # Changelog
 
+## 2.0.0 - 2026-06-19
+
+### Product-building lifecycle
+
+- Reworked `cto-loop` around Understand, Design, Build, Check, Ship, and Learn.
+- Added a seventh permanent profile: Designer.
+- Expanded Product (`pm`) to own positioning, SEO, launch strategy, and content
+  planning while preserving the profile ID.
+- Reframed Dev as Builder and QA as Reviewer without breaking profile names.
+
+### New skills
+
+- `computer-use`: guarded Hermes CUA workflow for native/authenticated GUI work.
+- `product-marketing`: context, positioning, website, SEO, launch, and content.
+- `creative-production`: restrained assets and HyperFrames launch video with
+  music-license evidence.
+- `observe-logs`: recurring, redacted, deduplicated production log review.
+- `publish-with-buffer`: founder-approved scheduling through Buffer's official
+  CLI, including dry runs and post-ID verification.
+- `generate-with-seedance`: budget-gated video generation through the official
+  Volcengine Ark asynchronous task API.
+- `scripts/setup-integrations.sh`: just-in-time secret setup for OpenAI, Buffer,
+  and Seedance in the Hermes environment without requesting keys in chat.
+
+### Workflow behavior
+
+- Replaced fixed questionnaires with read-first, maximum-three-question intake
+  that continues with documented defaults.
+- Made Designer responsible for `DESIGN.md` and rendered visual verification;
+  external design tools are optional inputs.
+- Added evidence-based Security and Reviewer gates plus YES/NO/CLOSE/LATER
+  founder release choices.
+- Added idempotent named crons for product review, health, logs, reporting, and
+  daily/weekly security.
+- Removed the incomplete tracked `examples/starter-app` because it claimed to be
+  a runnable Next.js starter without the files needed to run.
+- Removed the README Docker production snippet; Oh My Hermes is a Hermes skills
+  pack, not an application container.
+
+---
+
 ## 1.4.0 — 2026-05-09
 
 ### Added — CTO setup script and README corrections
@@ -123,6 +164,3 @@
 **Documentation**
 - `README.md`, `docs/architecture.md`, `docs/installation.md`, `docs/engines.md`
 - `docs/workflows.md`, `docs/design-handoff.md`, `docs/improvements-to-hermes.md`
-
-**Examples**
-- `examples/starter-app/` — minimal Next.js + Supabase + Vercel starter

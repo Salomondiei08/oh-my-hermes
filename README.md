@@ -4,9 +4,9 @@
 
 [![Stars](https://img.shields.io/github/stars/salomondiei08/oh-my-hermes?style=flat-square)](https://github.com/salomondiei08/oh-my-hermes/stargazers)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
-[![Hermes](https://img.shields.io/badge/Hermes-v0.13%2B-orange?style=flat-square)](https://hermes-agent.nousresearch.com)
-[![Skills](https://img.shields.io/badge/skills-24-brightgreen?style=flat-square)](#skills)
-[![Agents](https://img.shields.io/badge/agents-6-blue?style=flat-square)](#agents)
+[![Hermes](https://img.shields.io/badge/Hermes-v0.16%2B-orange?style=flat-square)](https://hermes-agent.nousresearch.com)
+[![Skills](https://img.shields.io/badge/skills-30-brightgreen?style=flat-square)](#skills)
+[![Agents](https://img.shields.io/badge/agents-7-blue?style=flat-square)](#agents)
 
 **An opinionated workflow layer for building, shipping, and operating apps — delivered directly to Hermes.**
 
@@ -32,116 +32,43 @@ And follow the instructions in INSTALL_FOR_AGENTS.md in that repo.
 
 ## The core idea
 
-Hermes is the operator. It talks to you. It remembers. It builds. It deploys. It monitors. It notifies.
+Tell Hermes what you want to build. It helps understand it, designs it, builds
+it, checks it, ships it, watches it, and learns from real use.
 
-You describe what you want in plain language — on Telegram, Slack, Discord, your terminal, wherever you have Hermes configured. Hermes loads the right skill and runs the workflow. Claude Code and Codex are optional engines Hermes can invoke when a task needs deep file editing — but Hermes handles the orchestration, the ops, the memory, and the lifecycle on its own.
-
-**Hermes does not need Claude Code or Codex to be useful.** Those are optional. Hermes itself has a terminal backend and can write, edit, and run code directly.
-
----
-
-## How it all fits together
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        YOU (founder)                            │
-│         Telegram · Slack · Discord · WhatsApp · terminal        │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │  plain-language messages
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                   HERMES  (VPS / local, 24/7)                   │
-│                                                                 │
-│  ┌──────────┐   routes to   ┌─────────────────────────────────┐ │
-│  │ Gateway  │ ────────────▶ │        CTO Agent                │ │
-│  │(Telegram │               │  monitors kanban, orchestrates  │ │
-│  │ /Slack…) │               └───────────┬─────────────────────┘ │
-│  └──────────┘                           │  spawns sub-agents    │
-│                      ┌──────────────────┼──────────────┐        │
-│                      ▼                  ▼              ▼        │
-│               ┌────────────┐  ┌──────────────┐  ┌──────────┐   │
-│               │  PM · Dev  │  │ QA · Security│  │   Ops    │   │
-│               │ triage     │  │ review · scan│  │ deploy   │   │
-│               │ implement  │  │ approve      │  │ monitor  │   │
-│               └─────┬──────┘  └──────┬───────┘  └────┬─────┘   │
-│                     │                │               │          │
-│              ┌──────▼────────────────▼───────────────▼──────┐   │
-│              │              Hermes Kanban                    │   │
-│              │   Triage → Ready → Running → Blocked/Done     │   │
-│              └───────────────────────────────────────────────┘   │
-│                                                                 │
-│  Persistent memory · 23 skills · 5 workflows · cron jobs        │
-└──────┬──────────────────────────────────────────────────────────┘
-       │
-       ├──▶  Claude Code  (complex multi-file coding)
-       ├──▶  Codex        (quick single-file fixes)
-       ├──▶  Vercel       (hosting + preview URLs)
-       ├──▶  Supabase     (database + auth + migrations)
-       ├──▶  GitHub       (issues, PRs, merge)
-       └──▶  Sentry / Uptime Kuma  (monitoring)
+```text
+Understand -> Design -> Build -> Check -> Ship -> Learn
 ```
 
----
+The CTO coordinates seven focused agents through Hermes Kanban. GitHub issues
+and PRs are useful delivery evidence, but they are not the roadmap or the goal.
+Work can start from an idea, customer feedback, production logs, analytics, or an
+issue.
 
-## Full project lifecycle
+Hermes reads the project before asking anything. It asks at most three useful
+questions, supplies recommended defaults, and continues when you skip them.
+Only irreversible actions such as production release, rollback, public posting,
+licensed media, payment, or destructive account changes require your approval.
 
-From idea to running production app, Hermes handles each stage:
-
+```text
+Founder
+  |
+  v
+CTO: lifecycle, roadmap, delegation, decisions
+  |
+  +-- Product: brief, priorities, positioning, SEO, content
+  +-- Designer: UX, visual verification, launch assets and video
+  +-- Builder: working product increments
+  +-- Reviewer: journeys, visual/accessibility checks, PR review
+  +-- Security: release risk plus daily/weekly assessment
+  +-- Ops: deploy, health, deduplicated logs, incidents
+  |
+  v
+Hermes Kanban + memory + cron + completion evidence
 ```
-IDEA
-  ↓  onboarding            ← Bot asks everything in chat, configures the loop
-  ↓  clarify-requirements  ← Hermes asks 7 questions, saves answers to memory
-  ↓  product-brief         ← Writes PRODUCT_BRIEF.md from requirements
-  ↓  design-handoff        ← Converts your design notes to an implementation spec
-  ↓  choose-engine         ← Decides: Hermes / Claude Code / Codex
-  ↓  implement             ← Builds it — surgical changes, no secrets committed
-  ↓  deploy-to-vercel      ← Pre-deploy checks → deploy → captures URL
-  ↓  connect-supabase      ← Links DB, pushes migrations, sets env vars
-  ↓  setup-monitoring      ← Sentry + Uptime Kuma
-  ↓  post-deploy-followup  ← Health check → log → notify you
-  ↓
-RUNNING APP
-  ↓  auto-issue-triage     ← Every hour: scores issues, picks top priority
-  ↓  implement + PR        ← Dev Agent builds, Security Agent reviews
-  ↓  await-merge-approval  ← Sends you YES/NO message
-  ↓  YOU reply YES         ← Merges, deploys, health-checks, confirms
-  ↓
-REPEAT — Hermes watches it, you approve changes
-```
 
----
-
-## The autonomous CTO loop
-
-Once configured, this runs every hour without you touching anything:
-
-```
-GitHub issue opens
-       ↓
-  PM Agent scores & triages  →  kanban: Ready, assignee=dev
-       ↓
-  Dev Agent implements  →  kanban: Running
-       ↓
-  Security Agent: secret scan + OWASP check + CVE check
-       ↓
-  QA Agent: build check + health check + plain-English summary
-       ↓
-  YOU get a message on Telegram:
-  ────────────────────────────────────────
-  PR #12 — Fix login redirect
-
-  What changed: Users who hadn't verified their email were
-  sent to a broken page. They now see "Check your inbox."
-
-  Build: passing  |  Preview: healthy (180ms)  |  No secrets found
-  Preview: https://myapp-fix-login.vercel.app
-
-  Reply YES to ship. Reply NO and tell me why.
-  ────────────────────────────────────────
-       ↓
-  YES → merges, deploys, health-checks, confirms live URL to you
-  NO  → Dev Agent iterates on your feedback
-```
+Claude Code and Codex remain optional implementation engines. Computer Use is a
+guarded shared skill for native or authenticated GUI tasks, not another agent.
+HyperFrames launch videos and licensed music activate only when requested.
 
 ---
 
@@ -167,19 +94,21 @@ bash install.sh
 set up the CTO loop
 ```
 
-The bot will ask for your GitHub repo, walk you through creating a token step by step, ask for your production URL, and configure everything. No terminal needed after Step 2.
+The bot inspects the project, asks only for missing settings that matter, and
+continues with sensible defaults when you skip them. GitHub and a production URL
+can be connected later; they do not block product discovery and building.
 
 **What you unlock at each step:**
 
 | Step | What to do | What you get |
 |---|---|---|
 | 1 | Install Hermes + connect Telegram | A bot you can message |
-| 2 | Run install.sh | 23 skills and 5 workflows loaded |
+| 2 | Run install.sh | 30 skills and 5 workflows loaded |
 | 3 | Message: "set up the CTO loop" | Bot guides the full setup in chat |
-| 4 | Bot asks for GitHub token | Issues monitored, PRs managed |
-| 5 | Bot asks for production URL | Health checks every 15 min |
+| 4 | Connect GitHub when useful | Issues and PR delivery enabled |
+| 5 | Add production URL after deploy | Health and log observation enabled |
 | 6 | `/goal` command | Agent stays focused across long sessions |
-| — | Autonomous from here | Hourly triage, daily report, weekly security scan |
+| — | Autonomous from here | Product review, daily report, recurring security and logs |
 
 ---
 
@@ -187,10 +116,15 @@ The bot will ask for your GitHub repo, walk you through creating a token step by
 
 | Skill | What Hermes does |
 |---|---|
-| `onboarding` | Guides full setup in chat — no terminal, no manual config |
-| `clarify-requirements` | Asks 7 structured questions, saves answers to memory |
-| `product-brief` | Generates a product brief, writes PRODUCT_BRIEF.md |
-| `design-handoff` | Converts design notes to an implementation spec |
+| `onboarding` | Infers setup, asks at most three optional questions, avoids duplicate crons |
+| `clarify-requirements` | Reads first, asks only material questions, continues with defaults |
+| `product-brief` | Writes the compact product source of truth and acceptance criteria |
+| `design-handoff` | Designer creates `DESIGN.md` and verifies implemented UI |
+| `computer-use` | Safely operates native/authenticated GUI only when simpler tools cannot |
+| `product-marketing` | Positioning, website copy, SEO, launch strategy, and content schedule |
+| `creative-production` | Product assets and HyperFrames launch video with licensed music evidence |
+| `generate-with-seedance` | Approved paid video shots through the official Volcengine Ark API |
+| `publish-with-buffer` | Dry-runs and schedules approved posts with the official Buffer CLI |
 | `create-skill` | Creates a new skill in the correct format (meta-skill) |
 | `choose-engine` | Routes tasks to Hermes, Claude Code, or Codex |
 | `implement-with-claude-code` | Scaffolds Claude Code with full context + scope constraints |
@@ -204,9 +138,10 @@ The bot will ask for your GitHub repo, walk you through creating a token step by
 | `manage-github-issues` | Triage, create, label, assign, and close GitHub issues |
 | `create-github-pr` | Creates PR with secret scan before opening |
 | `auto-issue-triage` | Hourly: scores open issues, picks top priority, starts work |
-| `review-github-pr` | Reviews PR diff, runs checks, writes plain-English summary |
-| `security-review` | Secret scan + OWASP check + CVE audit + weekly supply chain |
-| `await-merge-approval` | Sends YES/NO message to founder, merges or iterates |
+| `review-github-pr` | Verifies the product increment, then approves or requests changes |
+| `security-review` | Tool-backed release gate plus daily and weekly assessments |
+| `await-merge-approval` | Founder chooses YES, NO, CLOSE, or LATER |
+| `observe-logs` | Deduplicates runtime errors and escalates only actionable changes |
 | `kanban-task` | Creates and updates Hermes kanban cards at every stage |
 | `cto-status-report` | Daily morning report: what's in progress, done, blocked |
 | `backup-hermes-data` | Tarballs `~/.hermes/` to S3, Dropbox, or local |
@@ -216,46 +151,72 @@ The bot will ask for your GitHub repo, walk you through creating a token step by
 
 ## Agents
 
-Six agents, each with a specific role, kanban ownership, and clear scope. Role definitions live in `agents/`. Running `scripts/setup-cto.sh` (or messaging "set up the CTO loop") creates all six profiles and makes them active.
+Seven agents cover the product lifecycle without creating a profile for every
+tool. Role definitions live in `agents/`. Running `scripts/setup-cto.sh` (or
+messaging "set up the CTO loop") creates all seven profiles.
 
 ---
 
-### CTO — Chief Technology Officer
+### CTO — Product Lifecycle
 
-The main Hermes session. Owns all kanban columns. Delegates work to sub-agents, monitors progress, and is the only one who talks to you.
+The main Hermes session owns the roadmap loop from understanding through
+learning. It delegates specialists and is the only agent that summarizes
+decisions to you.
 
 **What triggers it:** Every hour via cron, or when you send a message.
 
 **What it does:**
 - Watches the kanban continuously (`hermes kanban watch`)
-- Spawns PM, Dev, Security, QA, or Ops sub-agents as needed
+- Spawns Product, Designer, Builder, Reviewer, Security, or Ops as needed
 - Sends you a daily morning report (what shipped, what's stuck, what needs your input)
 - Escalates to you only when a human decision is needed — health check failure, task blocked twice, secret found in a diff, scope change
 - Makes the call when two sub-agents conflict
 
-**What it does NOT do:** Write code, merge PRs, or deploy anything directly.
+**What it does NOT do:** Replace specialist work or ask for routine decisions.
 
 ---
 
-### PM — Product Manager
+### Product (`pm`) — Product and Growth
 
-Owns triage and ready work. Converts raw GitHub issues into implementation-ready kanban cards assigned to `dev`.
+Owns product clarity, priorities, positioning, SEO, launch strategy, and growth
+learning. The profile ID remains `pm` for compatibility.
 
 **What triggers it:** When new issues appear on GitHub or when the CTO spawns it for triage.
 
 **What it does:**
-- Reads open GitHub issues and scores them by impact and urgency (bug labels, comment activity, age, priority labels)
-- Writes kanban tickets with: a verb-based title, the business reason in one sentence, 2-4 testable acceptance criteria, and the linked issue number
-- Flags issues that are too vague — asks you for clarification rather than guessing
+- Reads product evidence, customer feedback, analytics, and issues
+- Writes compact briefs and testable outcome tasks
+- Asks at most three questions and uses recommended defaults when skipped
+- Creates website, SEO, launch, and content plans from real product evidence
 - Pings you after 24h if a blocked or approval-waiting card has gone stale
 
-**What it does NOT do:** Implement anything, merge PRs, make architecture decisions, or guess at unclear requirements.
+**What it does NOT do:** Implement code, design assets, invent evidence, or
+publish externally without approval.
 
 ---
 
-### Dev — Software Developer
+### Designer — Product and Creative Design
 
-Owns running implementation work. Claims the top ready kanban ticket and builds it.
+Owns UX, visual direction, responsive behavior, design verification, and launch
+media.
+
+**What it does:**
+- Writes `DESIGN.md` from the product brief and existing interface
+- Provides a recommended reversible direction instead of blocking on preferences
+- Inspects real mobile and desktop renders
+- Uses browser tools first and guarded Computer Use only for native/authenticated UI
+- Produces restrained HyperFrames launch videos when requested
+- Shortlists licensed music and records license coverage before use
+
+**What it does NOT do:** Hide the product behind synthetic visuals, use
+unlicensed music, or publish assets without approval.
+
+---
+
+### Builder (`dev`) — Software Builder
+
+Builds the smallest complete product increment and reports acceptance-criteria,
+test, runtime, and change evidence.
 
 **What triggers it:** When the PM Agent creates a ready card assigned to `dev` and the dispatcher starts work.
 
@@ -264,31 +225,27 @@ Owns running implementation work. Claims the top ready kanban ticket and builds 
 - Chooses the right engine for the task: Hermes terminal for ops/config, Codex for single-file bug fixes, Claude Code for multi-file features
 - Implements the change, commits after every logical unit of work
 - Never commits `.env` files, API keys, tokens, or credentials — scans `git diff --staged` before every commit
-- Creates a PR with a description drawn from memory and ticket context
+- Creates a PR when the repository uses that delivery workflow
 - Completes the implementation task with PR summary and metadata for Security/QA handoff
 
 **What it does NOT do:** Merge PRs, deploy to production, start a second ticket while one is in progress, or make product decisions.
 
 ---
 
-### Security — Security Analyst
+### Security — Product Security
 
-Sits between Dev and QA on every PR. Runs weekly supply chain checks.
+Independently reviews relevant release risk and runs recurring assessment.
 
-**What triggers it:** Every time Dev creates a PR; Monday 9am cron for supply chain.
+**What triggers it:** Security-relevant changes, daily lightweight cron, and
+weekly deeper assessment.
 
 **What it does on every PR:**
-- Scans the diff for hardcoded secrets (API keys, tokens, passwords, service role keys)
-- Flags dangerous patterns: `eval()`, raw SQL string concatenation, `dangerouslySetInnerHTML` without sanitization, `process.env` values logged to console
-- Checks for CVEs with `npm audit` / `pip-audit` — only when `package.json` or `requirements.txt` changed
-- Reviews auth flows and Supabase RLS policies when auth files are touched
-- OWASP Top 10 diff scan: broken access control, injection, weak crypto, missing auth, secrets in logs
+- Uses available Gitleaks, Semgrep, OSV-Scanner, and ecosystem audits
+- Reviews auth, authorization, input, uploads, payments, logs, and RLS in context
+- Deduplicates findings and requires evidence plus a re-test
 
-**What it does on Mondays:**
-- Lists all direct dependencies and their publishers
-- Flags publishers that changed in the last 30 days (account takeover risk)
-- Flags near-matches of popular package names (typosquatting)
-- Sends you a plain-English report: packages reviewed, flags, action required
+**What it does regularly:** Daily secret/Critical advisory checks and a weekly
+full dependency, configuration, and supply-chain assessment.
 
 **Severity table:**
 
@@ -299,21 +256,23 @@ Sits between Dev and QA on every PR. Runs weekly supply chain checks.
 | Medium | Comment on PR. Fix before next sprint. Does not block. |
 | Low | Log to memory. Include in weekly report. |
 
-**What it does NOT do:** Write code fixes (sends feedback to Dev instead), run SAST, pen tests, exploit simulations, or forensics. Does not run scans outside PR review and the weekly window.
+**What it does NOT do:** Run destructive tests on production, silently accept
+risk, or claim an unavailable scanner passed.
 
 ---
 
-### QA — Quality Assurance
+### Reviewer (`qa`) — Product Quality
 
-Owns product verification before a PR reaches you.
+Verifies the intended user experience. PR review is one mechanism, not the goal.
 
 **What triggers it:** When the Security Agent passes a PR and hands off for QA.
 
 **What it does:**
-- Reviews the PR diff for scope creep, leftover TODOs, and missing env vars in `.env.example`
+- Reviews the brief, design criteria, implementation evidence, and diff
 - Runs `gh pr checks` to verify the build passes
 - Runs a health check on the Vercel preview URL — HTTP 200, `status: ok`, under 3000ms
-- Verifies the changes actually match the acceptance criteria on the ticket
+- Exercises acceptance criteria plus responsive, loading, empty, error, and success states
+- Submits APPROVE or REQUEST CHANGES when a PR exists
 - Writes a plain-English founder summary: what the user experiences differently, which functions changed (not filenames), build status, response time, preview link
 - Sends back to Dev with specific feedback if anything fails
 
@@ -321,7 +280,7 @@ Owns product verification before a PR reaches you.
 
 ---
 
-### Ops — Operations
+### Ops — Release and Reliability
 
 Owns Done + active monitoring. Handles everything infrastructure.
 
@@ -331,13 +290,14 @@ Owns Done + active monitoring. Handles everything infrastructure.
 - Deploys to Vercel (production and preview)
 - Runs a three-layer health check after every deploy: app endpoint (`/api/health`), Supabase connection, Vercel logs scan
 - Monitors production every 15 minutes — checks HTTP status, response time, Supabase query latency, log errors
-- Pulls and scans Vercel logs hourly for 500s, crashes, and auth anomalies
+- Runs `observe-logs` hourly, groups duplicate failures, and correlates regressions with releases
 - Sends you a Slack/Telegram notification after every deploy and on any incident
 - On incident: retries once after 60 seconds, identifies which layer failed, pulls logs for context, alerts you in plain language — never pastes raw logs or stack traces
 - Offers to roll back if the last deploy was less than 2 hours ago; confirms with you before doing it
 - Holds all DB-touching operations during active Supabase incidents and resumes when the status page clears
 
-**What it does NOT do:** Write or edit application code, triage issues, manage PRs, or roll back without telling you first.
+**What it does NOT do:** Write product features, make product decisions, or
+roll back without approval.
 
 ---
 
@@ -346,11 +306,12 @@ Owns Done + active monitoring. Handles everything infrastructure.
 **Start a new project:**
 ```
 you: start a new app
-hermes: What problem does this solve? Who experiences it?
-you: [answer]
-hermes: [6 more questions…]
-hermes: Requirements saved. Generating product brief…
-hermes: Brief written to PRODUCT_BRIEF.md. Ready to implement or do design first?
+hermes: I found the stack and existing project context. I have two choices that
+        materially affect V1, with recommended defaults. Skip them and I will
+        continue with those defaults.
+you: use the defaults
+hermes: PRODUCT_BRIEF.md and DESIGN.md are ready. Starting the first complete
+        build increment now.
 ```
 
 **Deploy after implementing:**
@@ -367,7 +328,8 @@ hermes: Notification sent to Slack.
 you: fix the auth redirect bug in src/middleware.ts
 hermes: Loading context… routing to Codex (single-file fix)
 hermes: Done. Typecheck passes. Creating PR…
-hermes: PR #14 ready — reply YES to ship.
+hermes: The auth flow works on preview and the review is approved. Reply YES to
+        ship, NO with feedback, CLOSE, or LATER.
 ```
 
 **Steer mid-session (Hermes v0.13+):**
@@ -411,12 +373,29 @@ bash install.sh
 # Message your bot: "set up the CTO loop"
 ```
 
-For Docker:
+Oh My Hermes itself is not deployed as an app. It installs skills, workflows,
+agents, and scripts into Hermes. Your product deploys through its own platform
+such as Vercel; Docker is not part of the default production path.
+
+### Optional credentials, only when needed
+
+Oh My Hermes does not ask for every service during onboarding. Credentials are
+stored in `~/.hermes/.env` with user-only permissions and are requested at the
+first action that requires them:
+
+- OpenAI: when selected as the Hermes model or creative provider.
+- Buffer: when the founder first approves scheduling a social post.
+- Seedance: when the founder first approves a paid generated-video shot.
+
 ```bash
-docker run -d --restart=always \
-  -v hermes-data:/root/.hermes \
-  nousresearch/hermes-agent
+bash ~/.hermes/scripts/setup-integrations.sh --check
+bash ~/.hermes/scripts/setup-integrations.sh --buffer
+bash ~/.hermes/scripts/setup-integrations.sh --seedance
+bash ~/.hermes/scripts/setup-integrations.sh --openai
 ```
+
+Never paste credentials into chat. Buffer submissions are dry-run first;
+Seedance requests show the payload and estimated cost before approval.
 
 ---
 
@@ -425,8 +404,9 @@ docker run -d --restart=always \
 | Script | What it does |
 |---|---|
 | `install.sh` | Installs all skills, workflows, and agent definitions |
-| `scripts/bootstrap.sh` | Creates `AGENTS.md`, `.env.example`, and a Next.js health endpoint only when Next.js is detected |
+| `scripts/bootstrap.sh` | Creates `AGENTS.md`, `.env.example`, health endpoint, and a Next.js health endpoint only when Next.js is detected |
 | `scripts/setup-cto.sh` | Creates profiles, initializes kanban, schedules crons after explicit confirmation |
+| `scripts/setup-integrations.sh` | Securely configures optional OpenAI, Buffer, and Seedance credentials |
 | `scripts/verify.sh` | Checks everything is installed correctly |
 | `scripts/uninstall.sh` | Removes all Oh My Hermes files from `~/.hermes/` |
 
@@ -450,11 +430,11 @@ Do not use `npm install -g gbrain` — a squatter package exists on npm under th
 
 ```
 oh-my-hermes/
-├── skills/          ← 23 skill files → ~/.hermes/skills/
+├── skills/          ← 30 skill files → ~/.hermes/skills/
 ├── workflows/       ← 5 workflow files → ~/.hermes/workflows/
-├── agents/          ← 6 agent role definitions → ~/.hermes/agents/
+├── agents/          ← 7 agent role definitions → ~/.hermes/agents/
 ├── templates/       ← AGENTS.md template, .env example, health endpoint
-├── scripts/         ← install, bootstrap, verify, setup-cto, uninstall
+├── scripts/         ← install, bootstrap, verify, setup-cto, integrations, uninstall
 └── docs/            ← Full documentation
 ```
 
@@ -465,10 +445,13 @@ See [docs/architecture.md](docs/architecture.md) for detail.
 ## Roadmap
 
 **V1 — current**
-23 skills, 6 agents, 5 workflows, chat-guided onboarding, security agent, Karpathy code principles, one-command CTO setup, Vercel + Supabase + GitHub ops.
+30 skills, 7 agents, 5 workflows, optional-question onboarding, product design,
+computer use policy, recurring security and log observation, creative launch
+production, one-command CTO setup, Vercel + Supabase + GitHub delivery.
 
 **V2 — planned**
-Rollback skill, staging → production promotion workflow, incident creation, post-deploy automated tests.
+Staging-to-production promotion, broader provider adapters, and more complete
+post-deploy journey tests.
 
 **V3 — planned**
 Multi-service orchestration, more example apps, hosted setup wizard.
