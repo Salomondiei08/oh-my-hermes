@@ -6,6 +6,8 @@ HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
 SKILLS_DIR="$HERMES_DIR/skills"
 WORKFLOWS_DIR="$HERMES_DIR/workflows"
 AGENTS_DIR="$HERMES_DIR/agents"
+SCRIPTS_DIR="$HERMES_DIR/scripts"
+
 if [ "${#BASH_SOURCE[@]}" -gt 0 ] && [ -n "${BASH_SOURCE[0]:-}" ]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 else
@@ -66,6 +68,12 @@ for required in skills workflows agents scripts; do
   fi
 done
 
+# Install the just-in-time credential helper used by integration skills.
+if [ -f "$WORK_DIR/scripts/setup-integrations.sh" ]; then
+  mkdir -p "$SCRIPTS_DIR"
+  install -m 700 "$WORK_DIR/scripts/setup-integrations.sh" "$SCRIPTS_DIR/setup-integrations.sh"
+fi
+
 mkdir -p "$SKILLS_DIR" "$WORKFLOWS_DIR" "$AGENTS_DIR"
 
 install_md_dir() {
@@ -100,6 +108,7 @@ echo ""
 echo "[OK] Skills installed:    $SKILLS_INSTALLED → $SKILLS_DIR"
 echo "[OK] Workflows installed: $WORKFLOWS_INSTALLED → $WORKFLOWS_DIR"
 echo "[OK] Agents installed:    $AGENTS_INSTALLED → $AGENTS_DIR"
+echo "[OK] Integration setup:   $SCRIPTS_DIR/setup-integrations.sh"
 echo ""
 echo "Next steps:"
 echo "  1. git clone $OH_MY_HERMES_REPO /tmp/oh-my-hermes  # if you do not already have the repo"

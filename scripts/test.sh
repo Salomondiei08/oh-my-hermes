@@ -19,7 +19,7 @@ for skill in \
   manage-github-issues create-github-pr auto-issue-triage review-github-pr \
   await-merge-approval kanban-task cto-status-report backup-hermes-data \
   security-review onboarding rollback computer-use product-marketing \
-  creative-production observe-logs; do
+  creative-production observe-logs publish-with-buffer generate-with-seedance; do
   if [ -f "$HERMES_DIR/skills/$skill.md" ]; then
     ok "  skill: $skill"
   else
@@ -61,13 +61,19 @@ done
 
 echo ""
 echo "CLI tools:"
-for cmd in curl git jq gh vercel node npm rg; do
+for cmd in curl git jq gh vercel node npm rg ffmpeg; do
   if command -v $cmd &>/dev/null; then
     ok "  $cmd"
   else
     fail "  $cmd not found"
   fi
 done
+
+if [ -x "$HERMES_DIR/scripts/setup-integrations.sh" ]; then
+  ok "  setup-integrations.sh"
+else
+  fail "  setup-integrations.sh missing or not executable in ~/.hermes/scripts"
+fi
 
 echo ""
 echo "Hermes commands (skipped in TEST_MODE — requires live Hermes install):"

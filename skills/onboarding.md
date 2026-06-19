@@ -1,163 +1,77 @@
 ---
 name: onboarding
-description: Use when a user says "set up the CTO loop", "get started", or messages for the first time and github-repo is not saved in memory
-version: 1.0.0
-tags: [setup, onboarding, cto, guided]
+description: Use when a user first installs Oh My Hermes or asks to set up the product-building loop for a project
+version: 2.0.0
+tags: [setup, onboarding, product-loop, guided]
 ---
 
 ## Overview
 
-Guided conversational setup over chat. Asks one question at a time, explains every step in plain language, and configures everything internally. The user never opens a terminal.
+Configures the Product Loop with minimal questions. It infers project settings,
+offers defaults, and leaves unavailable integrations as non-blocking follow-up
+work.
 
 ## When to Use
 
-- User says "set up the CTO loop", "get started", or "set up"
-- `github-repo` key is not in Hermes memory
-- First meaningful interaction after install
+- User says "set up the product loop", "set up the CTO loop", or "get started".
+- Required agent profiles or kanban are missing.
+- A project has not saved its repository and production context.
 
 ## Prerequisites
 
-- Hermes Agent v0.9+ is installed and reachable.
-- `gh` is installed on the host where setup runs.
-- User can provide a GitHub repo, fine-grained token, production URL or `skip`, and daily report time.
+- Hermes Agent with profiles, Kanban, cron, and memory support.
+- Oh My Hermes files installed.
+- Optional: authenticated `gh` and a production URL.
 
 ## Procedure
 
-Follow the steps below in order. Ask one question, wait for the answer, save the value to memory, then continue.
+1. Inspect the current git remote, package files, deployment config, existing
+   Hermes memory, and authenticated CLI state.
+2. Infer repository, production URL, and preferred report time where possible.
+3. Ask at most one message with up to three unresolved settings. Include
+   recommended defaults and: "Skip any question and I will continue with the
+   defaults."
+4. Never ask the user to paste a token into chat. If GitHub is not authenticated,
+   provide `gh auth login` as a follow-up; continue configuring local profiles.
+5. Create or verify profiles: `cto`, `pm` (Product), `designer`, `dev`, `qa`,
+   `security`, and `ops`.
+6. Initialize Kanban and save available project context to memory.
+7. Create missing cron jobs only:
+   - hourly product/backlog review when a repository exists
+   - 15-minute health check when a production URL exists
+   - hourly log observation when a production URL exists
+   - daily status report
+   - daily lightweight security check when a repository exists
+   - weekly full security assessment when a repository exists
+8. Confirm what works now and list missing credentials or URLs as optional next
+   steps. Start from the user's product idea or current highest-priority outcome,
+   not automatically from GitHub issues.
+9. Run `bash ~/.hermes/scripts/setup-integrations.sh --check`. Request OpenAI only when it
+   is the selected model or creative provider, Buffer at the first approved
+   scheduling action, and Ark/Seedance at the first approved generated-video
+   action. Never require all three during initial onboarding.
 
-## Rules
+## Question Policy
 
-- One question per message. Wait for the answer before continuing.
-- Explain why you need each thing before asking for it.
-- Never show a raw token back to the user. Acknowledge receipt with "✓ Connected" only.
-- Keep messages short. No walls of text.
-
----
-
-## Step 1 — Welcome
-
-```
-Hey! I'm your autonomous CTO. I'll watch your GitHub, implement fixes, review code, and ask for your approval before anything ships.
-
-Let's get set up — it takes about 5 minutes and I'll guide you through each step.
-
-What's your GitHub repository? (format: owner/repo — for example: acme/my-app)
-```
-
-Save answer → memory key `github-repo`.
-
----
-
-## Step 2 — GitHub token
-
-```
-I need a token to read your issues and create pull requests. Here's exactly how to get one:
-
-1. Go to github.com → click your profile photo (top right) → Settings
-2. Scroll all the way down → click "Developer settings"
-3. Click "Personal access tokens" → "Fine-grained tokens"
-4. Click "Generate new token"
-5. Give it any name, set expiry to 1 year
-6. Under "Repository access" → "Only select repositories" → pick [their repo]
-7. Under "Permissions" turn on:
-   · Contents — Read and Write
-   · Issues — Read and Write
-   · Pull requests — Read and Write
-   · Metadata — Read (turns on automatically)
-8. Click "Generate token" at the bottom and copy it
-
-Paste it here when ready. It starts with github_pat_
-```
-
-On receipt:
-1. Run: `echo "[token]" | gh auth login --with-token && gh auth status`
-2. Success → reply `✓ Connected to GitHub as [username]`, save `github-username` to memory
-3. Failure → explain what went wrong (wrong permissions, expired), ask to try again
-4. Never echo the token back
-
----
-
-## Step 3 — Production URL
-
-```
-What's the URL of your live app? (for example: https://myapp.vercel.app)
-
-I'll check it every 15 minutes to make sure it's running. If you haven't deployed yet, just say "skip" — I'll ask again after your first deploy.
-```
-
-Save answer → memory key `production-url` (or `not set` if skipped).
-
----
-
-## Step 4 — Report time
-
-```
-Every morning I'll send you a summary — what's in progress, what shipped, anything that needs your attention.
-
-What time works for you? (for example: "9am" or "8:30am")
-```
-
-Save answer → memory key `report-time`. Convert to cron: "9am" → `0 9`, "8:30am" → `30 8`.
-
----
-
-## Step 5 — Run setup (silently)
-
-Do not show these commands to the user. Run them in the background.
-
-```bash
-for profile in cto pm dev qa ops security; do
-  hermes profile create "$profile" 2>/dev/null || true
-done
-
-hermes kanban init 2>/dev/null || true
-
-hermes cron add "0 * * * *"    "Run auto-issue-triage for [github-repo]" 2>/dev/null
-hermes cron add "*/15 * * * *" "Run health-check on [production-url]" 2>/dev/null
-hermes cron add "[cron for report-time] * * *" "Send cto-status-report to founder" 2>/dev/null
-hermes cron add "0 9 * * 1"    "Run security-review supply chain assessment for [github-repo]" 2>/dev/null
-```
-
----
-
-## Step 6 — Confirm
-
-```
-You're all set. Here's what I'll do from now on:
-
-Every hour — I check your GitHub issues, pick the most important one, and start working on it.
-
-When a fix is ready — I send you a message with what changed, whether tests pass, and a preview link. You reply YES or NO.
-
-Every morning at [report-time] — a short summary of everything in progress, done, and blocked.
-
-Every Monday — a security check on your packages.
-
-Checking your open issues now...
-```
-
-Then load and run `auto-issue-triage` for the configured repo.
-
----
-
-## Error handling
-
-| Problem | Response |
-|---|---|
-| Token rejected | Re-explain the permissions, provide the link, ask to try again |
-| No open issues | "Nothing open right now. Create an issue on GitHub and I'll pick it up within the hour." |
-| Profile creation fails | "Run `hermes update` and message me again — your version may need an update." |
-| gh CLI not found | "Type `! brew install gh` in your terminal, then message me again." |
+- Read first, ask second.
+- Maximum three questions in one message.
+- Every question has a recommended default.
+- Silence means continue with the defaults.
+- Stop only when the requested next action itself requires credentials,
+  payment, destructive access, licensing, or publication approval.
 
 ## Pitfalls
 
-- Do not continue after a failed GitHub token check.
-- Do not reveal or repeat the token in chat, logs, or summaries.
-- Do not create duplicate gateway sessions for the same bot token.
+- Do not create duplicate cron jobs on repeated setup.
+- Do not require GitHub or production deployment to begin product discovery.
+- Do not reveal credentials in chat, logs, memory, or command output.
+- Do not start multiple gateways for the same messaging account.
+- Do not use sudo when a user-level install path exists.
 
 ## Verification
 
-- `github-repo`, `github-username`, `production-url`, and `report-time` are saved in memory.
-- Profiles exist for `cto`, `pm`, `dev`, `qa`, `ops`, and `security`.
-- Cron entries exist for issue triage, health check, daily report, and weekly security assessment.
-- `hermes kanban list` succeeds after setup.
+- Seven profiles and their role files exist.
+- Kanban is accessible.
+- Existing cron jobs were reused rather than duplicated.
+- Available project context is saved and missing integrations are explicit.
+- The user can begin with a product outcome even without GitHub or deployment.

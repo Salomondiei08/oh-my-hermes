@@ -36,6 +36,10 @@ Slack notification with deployment URL and monitoring status.
 ### 5. post-deploy-followup
 Health check → deployment log → summary.
 
+### 6. observe-logs
+Scan the first post-release window, deduplicate new failures, and correlate any
+regression with the release. Alert only on actionable new High/Critical groups.
+
 ## Rollback
 
 If deployment is unhealthy after deploying:
