@@ -59,9 +59,13 @@ if [ "$SETUP_TELEGRAM" -eq 1 ]; then
     read -r -s -p "Telegram bot token: " TELEGRAM_BOT_TOKEN
     echo ""
   fi
-  if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && ! grep -q '^TELEGRAM_BOT_TOKEN=' "$env_file"; then
+  if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then
     escaped_token="${TELEGRAM_BOT_TOKEN//\'/\'\\\'\'}"
-    printf "TELEGRAM_BOT_TOKEN='%s'\n" "$escaped_token" >> "$env_file"
+    tmp_env="$(mktemp)"
+    awk 'index($0, "TELEGRAM_BOT_TOKEN=") != 1 { print }' "$env_file" > "$tmp_env"
+    printf "TELEGRAM_BOT_TOKEN='%s'\n" "$escaped_token" >> "$tmp_env"
+    mv "$tmp_env" "$env_file"
+    chmod 600 "$env_file"
     echo "[OK] Telegram token saved to $env_file"
   fi
   hermes gateway setup >/dev/null 2>&1 || true
