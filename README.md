@@ -12,17 +12,21 @@
 
 Like Oh My Zsh is to Zsh. You install it once and Hermes becomes genuinely useful for real software projects. Not a chatbot wrapper. Not a prompt pack. A curated set of skills that Hermes loads and runs autonomously — on your VPS, on your laptop, wherever Hermes lives.
 
-> **AI agent?** See [INSTALL_FOR_AGENTS.md](INSTALL_FOR_AGENTS.md) for the one-command install protocol.
-
 ---
 
-## Using with an AI agent
+## Use with your coding agent
 
-If you work with Claude, Cursor, Copilot, or any coding assistant, follow the agent install protocol:
+Copy this and paste it into Claude, Cursor, Copilot, or any coding assistant:
 
-[INSTALL_FOR_AGENTS.md](INSTALL_FOR_AGENTS.md)
+```
+Install Oh My Hermes by running this command:
+curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
 
-The file contains exact commands your agent can copy and run — prerequisites check, install, verify, bootstrap, and CTO loop setup.
+Then read the full workflow documentation at:
+https://github.com/salomondiei08/oh-my-hermes
+
+And follow the instructions in INSTALL_FOR_AGENTS.md in that repo.
+```
 
 ---
 
