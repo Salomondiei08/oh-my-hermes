@@ -1,6 +1,6 @@
 <img src="banner.png" alt="Oh My Hermes" width="100%" />
 
-# Oh My Hermes
+# OMH — Oh My Hermes
 
 [![Stars](https://img.shields.io/github/stars/salomondiei08/oh-my-hermes?style=flat-square)](https://github.com/salomondiei08/oh-my-hermes/stargazers)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
