@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# setup-cto.sh — creates real Hermes profiles for each CTO loop agent,
+# setup-cto.sh — creates real Hermes profiles for each product-loop agent,
 # initializes the kanban board, authenticates GitHub CLI, and sets up crons.
 # Run once after install.sh. Safe to re-run (idempotent).
 
@@ -73,6 +73,16 @@ require_hermes_subcommand cron list "hermes cron list supported"
 require_hermes_subcommand cron status "hermes cron status supported"
 require_hermes_subcommand cron add "hermes cron add supported"
 
+if hermes_has_subcommand computer-use status; then
+  if hermes computer-use status &>/dev/null; then
+    ok "Hermes computer use ready"
+  else
+    warn "Computer use is optional and not ready — run: hermes computer-use install"
+  fi
+else
+  warn "Hermes computer-use command unavailable — update Hermes to enable CUA"
+fi
+
 if [ "$FAIL" -gt 0 ]; then
   echo ""
   echo "Hermes runtime preflight failed. Fix missing command support and re-run."
@@ -86,7 +96,7 @@ fi
 ok "~/.hermes/agents/ exists"
 
 MISSING_AGENTS=0
-for agent in cto pm dev qa ops security; do
+for agent in cto pm designer dev qa ops security; do
   if [ -f "$AGENTS_DIR/$agent.md" ]; then
     ok "agent definition: $agent.md"
   else
@@ -102,16 +112,16 @@ if [ "$MISSING_AGENTS" -gt 0 ]; then
 fi
 
 # ── 2. Create Hermes profiles ─────────────────────
-step "2. Creating Hermes profiles (cto, pm, dev, qa, ops)"
+step "2. Creating Hermes profiles (cto, pm, designer, dev, qa, security, ops)"
 
-for profile in cto pm dev qa ops security; do
+for profile in cto pm designer dev qa ops security; do
   if hermes profile list 2>/dev/null | grep -qw "$profile"; then
     ok "profile '$profile' already exists"
   else
     case "$PROFILE_CREATE_SUBCOMMAND" in
       create|new)
         CREATE_ARGS=()
-        if [ "$profile" = "security" ]; then
+        if [ "$profile" = "designer" ] || [ "$profile" = "security" ]; then
           CREATE_ARGS+=(--no-alias)
         fi
 
@@ -131,7 +141,7 @@ done
 # ── 3. Inject agent roles into profiles ───────────
 step "3. Injecting agent role definitions into profiles"
 
-for agent in cto pm dev qa ops security; do
+for agent in cto pm designer dev qa ops security; do
   PROFILE_DIR="$HERMES_DIR/profiles/$agent"
   AGENT_FILE="$AGENTS_DIR/$agent.md"
 
@@ -262,14 +272,40 @@ step "8. Setting up cron jobs"
 
 CRON_FAIL=0
 
-if [ -n "$PRODUCTION_URL" ]; then
-  if hermes cron add "*/15 * * * *" "Run health-check on $PRODUCTION_URL" 2>/dev/null; then
-    ok "cron: health check every 15 min → $PRODUCTION_URL"
-  else
-    warn "Could not add health check cron. Add manually:"
-    echo "         hermes cron add '*/15 * * * *' 'Run health-check on $PRODUCTION_URL'"
-    CRON_FAIL=1
+ensure_cron() {
+  local name="$1"
+  local schedule="$2"
+  local prompt="$3"
+  local cron_list
+
+  cron_list=$(hermes cron list --all 2>/dev/null || hermes cron list 2>/dev/null || true)
+
+  if echo "$cron_list" | grep -Fq "$name" || echo "$cron_list" | grep -Fq "$prompt"; then
+    ok "cron already exists: $name"
+    return 0
   fi
+
+  if hermes cron add --help 2>/dev/null | grep -q -- "--name"; then
+    CRON_ARGS=(--name "$name")
+  else
+    CRON_ARGS=()
+  fi
+
+  if hermes cron add "${CRON_ARGS[@]}" "$schedule" "$prompt" 2>/dev/null; then
+    ok "cron created: $name"
+    return 0
+  fi
+
+  warn "Could not create cron: $name"
+  CRON_FAIL=1
+  return 0
+}
+
+if [ -n "$PRODUCTION_URL" ]; then
+  ensure_cron "oh-my-hermes-health" "*/15 * * * *" \
+    "Run health-check on $PRODUCTION_URL"
+  ensure_cron "oh-my-hermes-log-observer" "15 * * * *" \
+    "Run observe-logs for $PRODUCTION_URL. Deduplicate known events and notify only on new actionable High or Critical groups."
 else
   warn "PRODUCTION_URL not set — skipping health check cron"
   echo "         Set it and re-run, or add manually after deploy:"
@@ -277,35 +313,22 @@ else
 fi
 
 if [ -n "$GITHUB_REPO" ]; then
-  if hermes cron add "0 * * * *" "Run auto-issue-triage for $GITHUB_REPO" 2>/dev/null; then
-    ok "cron: issue triage every hour"
-  else
-    warn "Could not add triage cron. Add manually:"
-    echo "         hermes cron add '0 * * * *' 'Run auto-issue-triage for $GITHUB_REPO'"
-    CRON_FAIL=1
-  fi
+  ensure_cron "oh-my-hermes-product-review" "0 * * * *" \
+    "Review active product work and actionable GitHub issues for $GITHUB_REPO. Keep one product outcome active and do not treat issue volume as the roadmap."
 else
-  warn "GITHUB_REPO not set — skipping triage cron"
+  warn "GITHUB_REPO not set — skipping product and issue review cron"
 fi
 
-if hermes cron add "0 9 * * *" "Send cto-status-report to founder" 2>/dev/null; then
-  ok "cron: daily status report at 9am"
-else
-  warn "Could not add status report cron. Add manually:"
-  echo "         hermes cron add '0 9 * * *' 'Send cto-status-report to founder'"
-  CRON_FAIL=1
-fi
+ensure_cron "oh-my-hermes-daily-report" "0 9 * * *" \
+  "Send cto-status-report to founder"
 
 if [ -n "$GITHUB_REPO" ]; then
-  if hermes cron add "0 9 * * 1" "Run security-review supply chain assessment for $GITHUB_REPO" 2>/dev/null; then
-    ok "cron: weekly supply chain security assessment (Monday 9am)"
-  else
-    warn "Could not add supply chain cron. Add manually:"
-    echo "         hermes cron add '0 9 * * 1' 'Run security-review supply chain assessment for $GITHUB_REPO'"
-    CRON_FAIL=1
-  fi
+  ensure_cron "oh-my-hermes-security-daily" "30 8 * * *" \
+    "Run security-review daily mode for $GITHUB_REPO: check tracked secret exposure and new Critical dependency advisories. Deduplicate known findings."
+  ensure_cron "oh-my-hermes-security-weekly" "0 9 * * 1" \
+    "Run security-review weekly mode for $GITHUB_REPO: full dependency, configuration, and supply-chain assessment."
 else
-  warn "GITHUB_REPO not set — skipping weekly security assessment cron"
+  warn "GITHUB_REPO not set — skipping scheduled security assessments"
 fi
 
 # ── Summary ───────────────────────────────────────
@@ -325,7 +348,7 @@ elif [ "$WARN" -gt 0 ]; then
   echo "  hermes profile use cto"
   echo "  hermes kanban watch"
 else
-  echo "CTO loop fully configured. Start with:"
+  echo "CTO product loop fully configured. Start with:"
   echo ""
   echo "  hermes gateway start      # start messaging gateway"
   echo "  hermes profile use cto    # switch to CTO profile"
@@ -333,10 +356,10 @@ else
   echo ""
   echo "Then lock persistent focus (Hermes v0.13+):"
   if [ -n "$GITHUB_REPO" ]; then
-    echo "  /goal Manage $GITHUB_REPO as CTO. Triage issues hourly, implement top"
-    echo "        priority, get founder approval before merging. Never ship without YES."
+    echo "  /goal Build, launch, operate, and improve the product in $GITHUB_REPO."
+    echo "        Keep one outcome active, verify it, and ask only at irreversible boundaries."
   else
-    echo "  /goal Manage [owner/repo] as CTO. Triage issues hourly, implement top"
-    echo "        priority, get founder approval before merging. Never ship without YES."
+    echo "  /goal Build, launch, operate, and improve this product. Keep one outcome"
+    echo "        active, verify it, and ask only at irreversible boundaries."
   fi
 fi

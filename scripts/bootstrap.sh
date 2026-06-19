@@ -56,7 +56,8 @@ TODO: Describe data flow and service ownership.
 - Complex multi-file changes, new features → Claude Code
 - Quick targeted fixes, single-file changes → Codex
 - Deploy, monitor, notify, schedule → Hermes
-- UI/UX exploration before coding → Claude Design (human step)
+- Product UI/UX and visual verification → Hermes Designer Agent
+- Native/authenticated GUI work → computer-use only after API/browser paths
 - Not sure? Tell Hermes: run choose-engine
 
 ## Monitoring

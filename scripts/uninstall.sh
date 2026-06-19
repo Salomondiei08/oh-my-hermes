@@ -21,17 +21,18 @@ SKILLS=(
   setup-monitoring health-check send-notification post-deploy-followup
   manage-github-issues create-github-pr auto-issue-triage review-github-pr
   await-merge-approval kanban-task cto-status-report backup-hermes-data
-  security-review onboarding
+  security-review onboarding rollback computer-use product-marketing
+  creative-production observe-logs publish-with-buffer generate-with-seedance
 )
 
 WORKFLOWS=(idea-to-deploy design-to-code deploy-and-monitor github-ops cto-loop)
-AGENTS=(cto pm dev qa ops security)
+AGENTS=(cto pm designer dev qa ops security)
 
 echo "Will remove:"
 echo "  Skills:    ${#SKILLS[@]}"
 echo "  Workflows: ${#WORKFLOWS[@]}"
 echo "  Agents:    ${#AGENTS[@]}"
-echo "  Profiles:  cto, pm, dev, qa, ops"
+echo "  Profiles:  cto, pm, designer, dev, qa, security, ops"
 echo ""
 read -r -p "Continue? [y/N] " confirm
 if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
@@ -58,7 +59,13 @@ for agent in "${AGENTS[@]}"; do
   if [ -f "$f" ]; then rm "$f"; echo "  removed: agents/$agent.md"; REMOVED=$((REMOVED+1)); fi
 done
 
-for profile in cto pm dev qa ops security; do
+if [ -f "$HERMES_DIR/scripts/setup-integrations.sh" ]; then
+  rm "$HERMES_DIR/scripts/setup-integrations.sh"
+  echo "  removed: scripts/setup-integrations.sh"
+  REMOVED=$((REMOVED+1))
+fi
+
+for profile in cto pm designer dev qa ops security; do
   d="$HERMES_DIR/profiles/$profile"
   if [ -d "$d" ]; then rm -rf "$d"; echo "  removed: profiles/$profile/"; REMOVED=$((REMOVED+1)); fi
 done

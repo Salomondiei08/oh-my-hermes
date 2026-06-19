@@ -5,6 +5,7 @@ HERMES_DIR="$HOME/.hermes"
 SKILLS_DIR="$HERMES_DIR/skills"
 WORKFLOWS_DIR="$HERMES_DIR/workflows"
 AGENTS_DIR="$HERMES_DIR/agents"
+SCRIPTS_DIR="$HERMES_DIR/scripts"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "Oh My Hermes — installer"
@@ -22,6 +23,7 @@ fi
 mkdir -p "$SKILLS_DIR"
 mkdir -p "$WORKFLOWS_DIR"
 mkdir -p "$AGENTS_DIR"
+mkdir -p "$SCRIPTS_DIR"
 
 # Install skills
 SKILLS_INSTALLED=0
@@ -32,6 +34,9 @@ if [ -d "$SCRIPT_DIR/skills" ]; then
     SKILLS_INSTALLED=$((SKILLS_INSTALLED + 1))
   done
 fi
+
+# Install the just-in-time credential helper used by integration skills.
+install -m 700 "$SCRIPT_DIR/scripts/setup-integrations.sh" "$SCRIPTS_DIR/setup-integrations.sh"
 
 # Install workflows
 WORKFLOWS_INSTALLED=0
@@ -57,6 +62,7 @@ echo ""
 echo "[OK] Skills installed:    $SKILLS_INSTALLED → $SKILLS_DIR"
 echo "[OK] Workflows installed: $WORKFLOWS_INSTALLED → $WORKFLOWS_DIR"
 echo "[OK] Agents installed:    $AGENTS_INSTALLED → $AGENTS_DIR"
+echo "[OK] Integration setup:   $SCRIPTS_DIR/setup-integrations.sh"
 echo ""
 echo "Next steps:"
 echo "  1. cd into your project directory"
