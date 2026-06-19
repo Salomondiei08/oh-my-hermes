@@ -120,13 +120,12 @@ supabase login
 
 ```bash
 git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes
-cd /tmp/oh-my-hermes
-bash install.sh
+bash /tmp/oh-my-hermes/install.sh
 ```
 
 Verify:
 ```bash
-bash ~/.hermes/verify.sh    # or the path where you cloned the repo
+bash /tmp/oh-my-hermes/scripts/verify.sh
 ```
 
 All items should show [OK].

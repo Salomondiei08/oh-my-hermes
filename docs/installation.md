@@ -24,21 +24,14 @@ hermes computer-use --help   # optional on macOS
 
 ## Install Oh My Hermes
 
-**One-line:**
-
 ```bash
-curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
+git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes
+bash /tmp/oh-my-hermes/install.sh
 ```
 
-**Clone and install:**
-
-```bash
-git clone https://github.com/salomondiei08/oh-my-hermes
-cd oh-my-hermes
-bash install.sh
-```
-
-The installer copies `skills/` to `~/.hermes/skills/` and `workflows/` to `~/.hermes/workflows/`. It is idempotent — running again updates existing files.
+The installer copies repo files into `~/.hermes/`. It must run from a full
+checkout because the skills, workflows, agents, and integration setup script are
+separate files. It is idempotent — running again updates existing files.
 
 ---
 

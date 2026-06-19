@@ -20,7 +20,8 @@ Copy this and paste it into Claude, Cursor, Copilot, or any coding assistant:
 
 ```
 Install Oh My Hermes by running this command:
-curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
+git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes
+bash /tmp/oh-my-hermes/install.sh
 
 Then read the full workflow documentation at:
 https://github.com/salomondiei08/oh-my-hermes
@@ -82,8 +83,7 @@ Follow the [Hermes quickstart](https://hermes-agent.nousresearch.com/docs/gettin
 
 ```bash
 git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes
-cd /tmp/oh-my-hermes
-bash install.sh
+bash /tmp/oh-my-hermes/install.sh
 ```
 
 `curl | bash` is supported too; the installer self-clones a temporary copy when repo files are not present.
@@ -367,8 +367,7 @@ hermes gateway setup && hermes gateway start   # connect Telegram or Slack
 
 # Then install Oh My Hermes
 git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes
-cd /tmp/oh-my-hermes
-bash install.sh
+bash /tmp/oh-my-hermes/install.sh
 
 # Message your bot: "set up the CTO loop"
 ```
