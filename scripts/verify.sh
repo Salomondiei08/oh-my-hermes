@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export PATH="$HOME/.local/bin:$HOME/.hermes/hermes-agent/venv/bin:$PATH"
+
 HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
 SKILLS_DIR="$HERMES_DIR/skills"
 WORKFLOWS_DIR="$HERMES_DIR/workflows"

@@ -5,6 +5,8 @@
 
 set -euo pipefail
 
+export PATH="$HOME/.local/bin:$HOME/.hermes/hermes-agent/venv/bin:$PATH"
+
 HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
 AGENTS_DIR="$HERMES_DIR/agents"
 

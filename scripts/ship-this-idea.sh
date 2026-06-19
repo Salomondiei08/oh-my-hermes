@@ -3,6 +3,8 @@
 
 set -euo pipefail
 
+export PATH="$HOME/.local/bin:$HOME/.hermes/hermes-agent/venv/bin:$PATH"
+
 IDEA="$*"
 [ -n "$IDEA" ] || { echo "Usage: ship-this-idea.sh <idea>"; exit 2; }
 
