@@ -19,7 +19,9 @@ for skill in \
   manage-github-issues create-github-pr auto-issue-triage review-github-pr \
   await-merge-approval kanban-task cto-status-report backup-hermes-data \
   security-review onboarding rollback computer-use product-marketing \
-  creative-production observe-logs publish-with-buffer generate-with-seedance; do
+  creative-production observe-logs publish-with-buffer generate-with-seedance \
+  project-switch project-status failure-recovery server-bootstrap \
+  ship-this-idea reset-runtime; do
   if [ -f "$HERMES_DIR/skills/$skill.md" ]; then
     ok "  skill: $skill"
   else
@@ -29,7 +31,7 @@ done
 
 echo ""
 echo "Workflows:"
-for wf in idea-to-deploy design-to-code deploy-and-monitor github-ops cto-loop; do
+for wf in idea-to-deploy design-to-code deploy-and-monitor github-ops cto-loop ship-this-idea; do
   if [ -f "$HERMES_DIR/workflows/$wf.md" ]; then
     ok "  workflow: $wf"
   else
@@ -69,11 +71,13 @@ for cmd in curl git jq gh vercel node npm rg ffmpeg; do
   fi
 done
 
-if [ -x "$HERMES_DIR/scripts/setup-integrations.sh" ]; then
-  ok "  setup-integrations.sh"
-else
-  fail "  setup-integrations.sh missing or not executable in ~/.hermes/scripts"
-fi
+for script in setup-integrations.sh project.sh status.sh run-cron-safe.sh reset-runtime.sh server-bootstrap.sh ship-this-idea.sh; do
+  if [ -x "$HERMES_DIR/scripts/$script" ]; then
+    ok "  $script"
+  else
+    fail "  $script missing or not executable in ~/.hermes/scripts"
+  fi
+done
 
 echo ""
 echo "Hermes commands (skipped in TEST_MODE — requires live Hermes install):"

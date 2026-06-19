@@ -8,6 +8,8 @@
   creative production, and deduplicated log observation skills.
 - Added just-in-time OpenAI, Buffer, and Volcengine Ark credential setup,
   official Buffer scheduling, and official Seedance generation workflows.
+- Added first-run operating scripts for server bootstrap, project switching,
+  project status, dead-letter failure recovery, runtime reset, and ship-this-idea.
 - Made questions optional by default: read first, ask at most three, recommend
   defaults, and continue when skipped.
 - Expanded independent security and product review, recurring operations, and

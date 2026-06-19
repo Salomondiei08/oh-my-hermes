@@ -23,10 +23,17 @@ SKILLS=(
   await-merge-approval kanban-task cto-status-report backup-hermes-data
   security-review onboarding rollback computer-use product-marketing
   creative-production observe-logs publish-with-buffer generate-with-seedance
+  project-switch project-status failure-recovery server-bootstrap
+  ship-this-idea reset-runtime
 )
 
-WORKFLOWS=(idea-to-deploy design-to-code deploy-and-monitor github-ops cto-loop)
+WORKFLOWS=(idea-to-deploy design-to-code deploy-and-monitor github-ops cto-loop ship-this-idea)
 AGENTS=(cto pm designer dev qa ops security)
+SCRIPTS=(
+  bootstrap.sh setup-cto.sh setup-integrations.sh project.sh status.sh
+  run-cron-safe.sh reset-runtime.sh server-bootstrap.sh ship-this-idea.sh
+  test.sh uninstall.sh validate-skills.sh verify.sh
+)
 
 echo "Will remove:"
 echo "  Skills:    ${#SKILLS[@]}"
@@ -59,11 +66,10 @@ for agent in "${AGENTS[@]}"; do
   if [ -f "$f" ]; then rm "$f"; echo "  removed: agents/$agent.md"; REMOVED=$((REMOVED+1)); fi
 done
 
-if [ -f "$HERMES_DIR/scripts/setup-integrations.sh" ]; then
-  rm "$HERMES_DIR/scripts/setup-integrations.sh"
-  echo "  removed: scripts/setup-integrations.sh"
-  REMOVED=$((REMOVED+1))
-fi
+for script in "${SCRIPTS[@]}"; do
+  f="$HERMES_DIR/scripts/$script"
+  if [ -f "$f" ]; then rm "$f"; echo "  removed: scripts/$script"; REMOVED=$((REMOVED+1)); fi
+done
 
 for profile in cto pm designer dev qa ops security; do
   d="$HERMES_DIR/profiles/$profile"

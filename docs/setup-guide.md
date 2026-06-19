@@ -158,6 +158,20 @@ Buffer is requested at the first approved social scheduling action. Seedance is
 requested at the first approved paid video generation. OpenAI is requested only
 when selected as the Hermes model or creative provider.
 
+For a fresh VPS, use the installed server bootstrap after installing Oh My
+Hermes:
+
+```bash
+bash ~/.hermes/scripts/server-bootstrap.sh --project myapp --repo owner/repo --telegram
+bash ~/.hermes/scripts/status.sh
+```
+
+To replace stale runtime state before a new Telegram agent:
+
+```bash
+bash ~/.hermes/scripts/reset-runtime.sh --yes
+```
+
 The script:
 - Creates Hermes profiles: `cto`, `pm`, `designer`, `dev`, `qa`, `security`, `ops`
 - Injects each agent's role definition into its profile

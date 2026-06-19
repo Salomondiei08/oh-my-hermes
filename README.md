@@ -5,7 +5,7 @@
 [![Stars](https://img.shields.io/github/stars/salomondiei08/oh-my-hermes?style=flat-square)](https://github.com/salomondiei08/oh-my-hermes/stargazers)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 [![Hermes](https://img.shields.io/badge/Hermes-v0.16%2B-orange?style=flat-square)](https://hermes-agent.nousresearch.com)
-[![Skills](https://img.shields.io/badge/skills-30-brightgreen?style=flat-square)](#skills)
+[![Skills](https://img.shields.io/badge/skills-36-brightgreen?style=flat-square)](#skills)
 [![Agents](https://img.shields.io/badge/agents-7-blue?style=flat-square)](#agents)
 
 **An opinionated workflow layer for building, shipping, and operating apps — delivered directly to Hermes.**
@@ -103,7 +103,7 @@ can be connected later; they do not block product discovery and building.
 | Step | What to do | What you get |
 |---|---|---|
 | 1 | Install Hermes + connect Telegram | A bot you can message |
-| 2 | Run install.sh | 30 skills and 5 workflows loaded |
+| 2 | Run install.sh | 36 skills and 6 workflows loaded |
 | 3 | Message: "set up the CTO loop" | Bot guides the full setup in chat |
 | 4 | Connect GitHub when useful | Issues and PR delivery enabled |
 | 5 | Add production URL after deploy | Health and log observation enabled |
@@ -125,6 +125,12 @@ can be connected later; they do not block product discovery and building.
 | `creative-production` | Product assets and HyperFrames launch video with licensed music evidence |
 | `generate-with-seedance` | Approved paid video shots through the official Volcengine Ark API |
 | `publish-with-buffer` | Dry-runs and schedules approved posts with the official Buffer CLI |
+| `project-switch` | Switches product context without mixing repo, URL, logs, or approvals |
+| `project-status` | Founder-readable status for gateway, model, project, crons, integrations |
+| `failure-recovery` | Saves failed cron/agent context to dead-letter logs and alerts the founder |
+| `server-bootstrap` | Sets up a fresh server with Hermes, Telegram, Oh My Hermes, and CTO loop |
+| `ship-this-idea` | Runs the flagship idea → brief → design → build → verify → ship flow |
+| `reset-runtime` | Backs up and clears stale Hermes runtime state without deleting credentials |
 | `create-skill` | Creates a new skill in the correct format (meta-skill) |
 | `choose-engine` | Routes tasks to Hermes, Claude Code, or Codex |
 | `implement-with-claude-code` | Scaffolds Claude Code with full context + scope constraints |
@@ -406,6 +412,12 @@ Seedance requests show the payload and estimated cost before approval.
 | `scripts/bootstrap.sh` | Creates `AGENTS.md`, `.env.example`, health endpoint, and a Next.js health endpoint only when Next.js is detected |
 | `scripts/setup-cto.sh` | Creates profiles, initializes kanban, schedules crons after explicit confirmation |
 | `scripts/setup-integrations.sh` | Securely configures optional OpenAI, Buffer, and Seedance credentials |
+| `scripts/server-bootstrap.sh` | Fresh server setup for Hermes + Oh My Hermes + Telegram |
+| `scripts/project.sh` | Switches current product context and stores repo/URL metadata |
+| `scripts/status.sh` | Prints founder-readable project and integration status |
+| `scripts/run-cron-safe.sh` | Wraps jobs and creates dead-letter logs on failure |
+| `scripts/reset-runtime.sh` | Backs up and clears stale sessions/state/logs |
+| `scripts/ship-this-idea.sh` | Starts the full flagship build flow from one sentence |
 | `scripts/verify.sh` | Checks everything is installed correctly |
 | `scripts/uninstall.sh` | Removes all Oh My Hermes files from `~/.hermes/` |
 
@@ -429,11 +441,11 @@ Do not use `npm install -g gbrain` — a squatter package exists on npm under th
 
 ```
 oh-my-hermes/
-├── skills/          ← 30 skill files → ~/.hermes/skills/
-├── workflows/       ← 5 workflow files → ~/.hermes/workflows/
+├── skills/          ← 36 skill files → ~/.hermes/skills/
+├── workflows/       ← 6 workflow files → ~/.hermes/workflows/
 ├── agents/          ← 7 agent role definitions → ~/.hermes/agents/
 ├── templates/       ← AGENTS.md template, .env example, health endpoint
-├── scripts/         ← install, bootstrap, verify, setup-cto, integrations, uninstall
+├── scripts/         ← install, bootstrap, status, switch, reset, setup, verify
 └── docs/            ← Full documentation
 ```
 
@@ -444,9 +456,10 @@ See [docs/architecture.md](docs/architecture.md) for detail.
 ## Roadmap
 
 **V1 — current**
-30 skills, 7 agents, 5 workflows, optional-question onboarding, product design,
-computer use policy, recurring security and log observation, creative launch
-production, one-command CTO setup, Vercel + Supabase + GitHub delivery.
+36 skills, 7 agents, 6 workflows, optional-question onboarding, project
+switching, status, dead-letter recovery, product design, computer use policy,
+recurring security and log observation, creative launch production, fresh-server
+setup, Vercel + Supabase + GitHub delivery.
 
 **V2 — planned**
 Staging-to-production promotion, broader provider adapters, and more complete

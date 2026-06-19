@@ -42,7 +42,7 @@ That means Hermes already has the primitives for a product-building loop. Oh My 
 
 The idea behind Oh My Hermes
 
-Oh My Hermes is a skill pack: 30 skills, 7 agent role definitions, and 5 workflows.
+Oh My Hermes is a skill pack: 36 skills, 7 agent role definitions, and 6 workflows.
 
 The goal is simple:
 

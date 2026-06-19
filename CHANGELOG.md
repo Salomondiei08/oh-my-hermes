@@ -21,8 +21,14 @@
   CLI, including dry runs and post-ID verification.
 - `generate-with-seedance`: budget-gated video generation through the official
   Volcengine Ark asynchronous task API.
+- `project-switch`, `project-status`, `failure-recovery`, `server-bootstrap`,
+  `ship-this-idea`, and `reset-runtime`: first-run operating layer for fresh
+  servers and multi-project work.
 - `scripts/setup-integrations.sh`: just-in-time secret setup for OpenAI, Buffer,
   and Seedance in the Hermes environment without requesting keys in chat.
+- Installed helper scripts now include project switching, founder status,
+  dead-letter cron wrapping, safe runtime reset, fresh server bootstrap, and the
+  flagship ship-this-idea launcher.
 
 ### Workflow behavior
 

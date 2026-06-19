@@ -50,7 +50,7 @@ if [ ! -d "$WORK_DIR/skills" ] || [ ! -d "$WORK_DIR/workflows" ] || [ ! -d "$WOR
   fi
   || [ ! -d "$SCRIPT_DIR/workflows" ] \
   || [ ! -d "$SCRIPT_DIR/agents" ] \
-  || [ ! -f "$SCRIPT_DIR/scripts/setup-integrations.sh" ]; then
+  || [ ! -d "$SCRIPT_DIR/scripts" ]; then
   echo ""
   echo "[ERROR] install.sh must be run from a full Oh My Hermes checkout."
   echo "        This installer copies repo files; piping only install.sh is not enough."
@@ -85,10 +85,26 @@ for required in skills workflows agents scripts; do
   fi
 done
 
-# Install the just-in-time credential helper used by integration skills.
-if [ -f "$WORK_DIR/scripts/setup-integrations.sh" ]; then
-  mkdir -p "$SCRIPTS_DIR"
-  install -m 700 "$WORK_DIR/scripts/setup-integrations.sh" "$SCRIPTS_DIR/setup-integrations.sh"
+# Install Oh My Hermes helper scripts.
+SCRIPTS_INSTALLED=0
+mkdir -p "$SCRIPTS_DIR"
+for script in "$WORK_DIR/scripts"/*.sh; do
+  [ -f "$script" ] || continue
+  install -m 700 "$script" "$SCRIPTS_DIR/$(basename "$script")"
+  SCRIPTS_INSTALLED=$((SCRIPTS_INSTALLED + 1))
+done
+
+# Install workflows
+WORKFLOWS_INSTALLED=0
+if [ -d "$WORK_DIR/workflows" ]; then
+  for workflow in "$WORK_DIR/workflows"/*.md; do
+    [ -f "$workflow" ] || continue
+    cp "$workflow" "$WORKFLOWS_DIR/"
+    WORKFLOWS_INSTALLED=$((WORKFLOWS_INSTALLED + 1))
+  done
+fi
+
+mkdir -p "$SKILLS_DIR" "$WORKFLOWS_DIR" "$AGENTS_DIR"
 fi
 
 mkdir -p "$SKILLS_DIR" "$WORKFLOWS_DIR" "$AGENTS_DIR"
@@ -125,7 +141,7 @@ echo ""
 echo "[OK] Skills installed:    $SKILLS_INSTALLED → $SKILLS_DIR"
 echo "[OK] Workflows installed: $WORKFLOWS_INSTALLED → $WORKFLOWS_DIR"
 echo "[OK] Agents installed:    $AGENTS_INSTALLED → $AGENTS_DIR"
-echo "[OK] Integration setup:   $SCRIPTS_DIR/setup-integrations.sh"
+echo "[OK] Scripts installed:   $SCRIPTS_INSTALLED → $SCRIPTS_DIR"
 echo ""
 echo "Next steps:"
 echo "  1. git clone $OH_MY_HERMES_REPO /tmp/oh-my-hermes  # if you do not already have the repo"

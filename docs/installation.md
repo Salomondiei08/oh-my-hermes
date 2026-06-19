@@ -45,9 +45,9 @@ Expected output:
 ```
 [OK] Hermes found
 [OK] Skills directory: ~/.hermes/skills/
-[OK] 30 skills installed
+[OK] 36 skills installed
 [OK] Workflows directory: ~/.hermes/workflows/
-[OK] 5 workflows installed
+[OK] 6 workflows installed
 [OK] 7 agents installed
 Next: cd into your project and run the bootstrap script.
 ```
