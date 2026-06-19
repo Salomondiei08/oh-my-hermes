@@ -20,6 +20,20 @@ if [ ! -d "$HERMES_DIR" ]; then
   exit 1
 fi
 
+if [ ! -d "$SCRIPT_DIR/skills" ] \
+  || [ ! -d "$SCRIPT_DIR/workflows" ] \
+  || [ ! -d "$SCRIPT_DIR/agents" ] \
+  || [ ! -f "$SCRIPT_DIR/scripts/setup-integrations.sh" ]; then
+  echo ""
+  echo "[ERROR] install.sh must be run from a full Oh My Hermes checkout."
+  echo "        This installer copies repo files; piping only install.sh is not enough."
+  echo ""
+  echo "        Run:"
+  echo "          git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes"
+  echo "          bash /tmp/oh-my-hermes/install.sh"
+  exit 1
+fi
+
 mkdir -p "$SKILLS_DIR"
 mkdir -p "$WORKFLOWS_DIR"
 mkdir -p "$AGENTS_DIR"

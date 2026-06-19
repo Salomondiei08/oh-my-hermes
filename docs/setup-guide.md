@@ -119,12 +119,13 @@ supabase login
 ## Step 5 — Install Oh My Hermes
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
+git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes
+bash /tmp/oh-my-hermes/install.sh
 ```
 
 Verify:
 ```bash
-bash ~/.hermes/verify.sh    # or the path where you cloned the repo
+bash /tmp/oh-my-hermes/scripts/verify.sh
 ```
 
 All items should show [OK].

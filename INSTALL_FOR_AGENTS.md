@@ -19,7 +19,8 @@ https://hermes-agent.nousresearch.com/docs/getting-started/quickstart
 ## Step 1 — Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
+git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes
+bash /tmp/oh-my-hermes/install.sh
 ```
 
 Installs 30 skills, 5 workflows, and 7 agent role definitions into `~/.hermes/`.
