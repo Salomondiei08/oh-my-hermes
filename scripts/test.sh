@@ -18,7 +18,8 @@ for skill in \
   setup-monitoring health-check send-notification post-deploy-followup \
   manage-github-issues create-github-pr auto-issue-triage review-github-pr \
   await-merge-approval kanban-task cto-status-report backup-hermes-data \
-  security-review onboarding; do
+  security-review onboarding rollback computer-use product-marketing \
+  creative-production observe-logs; do
   if [ -f "$HERMES_DIR/skills/$skill.md" ]; then
     ok "  skill: $skill"
   else
@@ -38,7 +39,7 @@ done
 
 echo ""
 echo "Agents:"
-for agent in cto pm dev qa ops security; do
+for agent in cto pm designer dev qa ops security; do
   if [ -f "$HERMES_DIR/agents/$agent.md" ]; then
     ok "  agent: $agent"
   else
@@ -60,7 +61,7 @@ done
 
 echo ""
 echo "CLI tools:"
-for cmd in curl git jq gh vercel node npm rg ffmpeg; do
+for cmd in curl git jq gh vercel node npm rg; do
   if command -v $cmd &>/dev/null; then
     ok "  $cmd"
   else

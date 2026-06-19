@@ -1,0 +1,22 @@
+name: Test
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Oh My Hermes into fake ~/.hermes
+        run: |
+          mkdir -p ~/.hermes/skills ~/.hermes/workflows ~/.hermes/agents
+          bash install.sh
+
+      - name: Run smoke tests
+        run: bash scripts/test.sh
+        env:
+          TEST_MODE: "1"
