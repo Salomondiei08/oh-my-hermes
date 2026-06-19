@@ -49,8 +49,18 @@ line "Production" "${PRODUCTION_URL:-not connected}"
 
 if command -v hermes >/dev/null 2>&1; then
   line "Hermes" "$(hermes --version 2>/dev/null || echo connected)"
-  line "Gateway" "$(hermes gateway status 2>/dev/null | head -1 || echo unknown)"
-  line "Model" "$(hermes config show 2>/dev/null | grep -E 'provider|model' | head -2 | tr '\n' ' ' || echo unknown)"
+  if hermes gateway status >/tmp/omh-gateway-status.$$ 2>/dev/null; then
+    if grep -q "User gateway service is running" /tmp/omh-gateway-status.$$ || grep -q "Active: active" /tmp/omh-gateway-status.$$; then
+      line "Gateway" "running"
+    else
+      line "Gateway" "$(head -1 /tmp/omh-gateway-status.$$)"
+    fi
+  else
+    line "Gateway" "unknown"
+  fi
+  rm -f /tmp/omh-gateway-status.$$
+  model_line="$(hermes config show 2>/dev/null | grep -E "Model:|provider|default" | head -1 | sed -E 's/^[[:space:]]+//; s/[{}]//g' || true)"
+  line "Model" "${model_line:-unknown}"
   cron_count="$(hermes cron list 2>/dev/null | grep -Ec '^[[:space:]]*[0-9]+|oh-my-hermes' || true)"
   line "Crons" "${cron_count:-0} visible"
 else
