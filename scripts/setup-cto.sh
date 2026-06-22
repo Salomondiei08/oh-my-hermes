@@ -3,7 +3,7 @@
 # initializes the kanban board, authenticates GitHub CLI, and sets up crons.
 # Run once after install.sh. Safe to re-run (idempotent).
 
-set -e
+set -euo pipefail
 
 HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
 AGENTS_DIR="$HERMES_DIR/agents"
@@ -23,6 +23,40 @@ hermes_has_subcommand() {
 
   hermes "$group" "$subcommand" --help &>/dev/null && return 0
   hermes "$group" --help 2>/dev/null | grep -Eq "(^|[[:space:]])$subcommand([[:space:],]|$)"
+}
+
+
+profile_exists() {
+  hermes profile list 2>/dev/null | awk 'NR>2 {print $1}' | sed 's/^◆//' | grep -Fxq "$1"
+}
+
+cron_job_exists() {
+  local job_name="$1"
+  hermes cron list 2>/dev/null | grep -Fq "Name:      $job_name"
+}
+
+create_cron_job() {
+  local schedule="$1"
+  local job_name="$2"
+  local prompt="$3"
+  local deliver="${4:-local}"
+
+  if cron_job_exists "$job_name"; then
+    ok "cron already exists: $job_name"
+    return 0
+  fi
+
+  if hermes cron create --name "$job_name" --deliver "$deliver" "$schedule" "$prompt" >/dev/null 2>&1; then
+    ok "cron created: $job_name"
+    return 0
+  fi
+
+  if hermes cron add --name "$job_name" --deliver "$deliver" "$schedule" "$prompt" >/dev/null 2>&1; then
+    ok "cron created (legacy syntax): $job_name"
+    return 0
+  fi
+
+  return 1
 }
 
 require_hermes_subcommand() {
@@ -122,7 +156,7 @@ fi
 step "2. Creating Hermes profiles (cto, pm, dev, qa, ops)"
 
 for profile in cto pm dev qa ops security; do
-  if hermes profile list 2>/dev/null | grep -qw "$profile"; then
+  if profile_exists "$profile"; then
     ok "profile '$profile' already exists"
   else
     case "$PROFILE_CREATE_SUBCOMMAND" in
@@ -179,7 +213,7 @@ fi
 # ── 5. GitHub credentials ─────────────────────────
 step "5. Checking GitHub credentials"
 
-if [ -z "$GITHUB_TOKEN" ]; then
+if [ -z "${GITHUB_TOKEN:-}" ]; then
   warn "GITHUB_TOKEN not set"
   echo "         Create a fine-grained token at:"
   echo "         github.com → Settings → Developer settings → Personal access tokens → Fine-grained"
@@ -206,11 +240,11 @@ else
   fi
 fi
 
-[ -z "$GITHUB_USERNAME" ] && \
+[ -z "${GITHUB_USERNAME:-}" ] && \
   warn "GITHUB_USERNAME not set — auto-issue-triage cannot self-assign issues. Add: export GITHUB_USERNAME=your-username" || \
   ok "GITHUB_USERNAME: $GITHUB_USERNAME"
 
-[ -z "$GITHUB_REPO" ] && \
+[ -z "${GITHUB_REPO:-}" ] && \
   warn "GITHUB_REPO not set — CTO loop has no repo to manage. Add: export GITHUB_REPO=owner/repo" || \
   ok "GITHUB_REPO: $GITHUB_REPO"
 
@@ -257,7 +291,7 @@ hermes_memory_set() {
   fi
 }
 
-if [ -n "$GITHUB_REPO" ]; then
+if [ -n "${GITHUB_REPO:-}" ]; then
   if hermes_memory_set "github-repo" "$GITHUB_REPO"; then
     ok "github-repo saved to memory"
   else
@@ -266,7 +300,7 @@ if [ -n "$GITHUB_REPO" ]; then
   fi
 fi
 
-if [ -n "$GITHUB_USERNAME" ]; then
+if [ -n "${GITHUB_USERNAME:-}" ]; then
   if hermes_memory_set "github-username" "$GITHUB_USERNAME"; then
     ok "github-username saved to memory"
   else
@@ -279,46 +313,46 @@ step "8. Setting up cron jobs"
 
 CRON_FAIL=0
 
-if [ -n "$PRODUCTION_URL" ]; then
-  if hermes cron add "*/15 * * * *" "Run health-check on $PRODUCTION_URL" 2>/dev/null; then
-    ok "cron: health check every 15 min → $PRODUCTION_URL"
+if [ -n "${PRODUCTION_URL:-}" ]; then
+  if create_cron_job "*/15 * * * *" "oh-my-hermes health-check" "Run health-check on $PRODUCTION_URL" "local"; then
+    :
   else
     warn "Could not add health check cron. Add manually:"
-    echo "         hermes cron add '*/15 * * * *' 'Run health-check on $PRODUCTION_URL'"
+    echo "         hermes cron create --name 'oh-my-hermes health-check' --deliver local '*/15 * * * *' 'Run health-check on $PRODUCTION_URL'"
     CRON_FAIL=1
   fi
 else
   warn "PRODUCTION_URL not set — skipping health check cron"
   echo "         Set it and re-run, or add manually after deploy:"
-  echo "         hermes cron add '*/15 * * * *' 'Run health-check on https://yourapp.vercel.app'"
+  echo "         hermes cron create --name 'oh-my-hermes health-check' --deliver local '*/15 * * * *' 'Run health-check on https://yourapp.vercel.app'"
 fi
 
-if [ -n "$GITHUB_REPO" ]; then
-  if hermes cron add "0 * * * *" "Run auto-issue-triage for $GITHUB_REPO" 2>/dev/null; then
-    ok "cron: issue triage every hour"
+if [ -n "${GITHUB_REPO:-}" ]; then
+  if create_cron_job "0 * * * *" "oh-my-hermes auto-issue-triage" "Run auto-issue-triage for $GITHUB_REPO" "local"; then
+    :
   else
     warn "Could not add triage cron. Add manually:"
-    echo "         hermes cron add '0 * * * *' 'Run auto-issue-triage for $GITHUB_REPO'"
+    echo "         hermes cron create --name 'oh-my-hermes auto-issue-triage' --deliver local '0 * * * *' 'Run auto-issue-triage for $GITHUB_REPO'"
     CRON_FAIL=1
   fi
 else
   warn "GITHUB_REPO not set — skipping triage cron"
 fi
 
-if hermes cron add "0 9 * * *" "Send cto-status-report to founder" 2>/dev/null; then
-  ok "cron: daily status report at 9am"
+if create_cron_job "0 9 * * *" "oh-my-hermes cto-status-report" "Send cto-status-report to founder" "origin"; then
+  :
 else
   warn "Could not add status report cron. Add manually:"
-  echo "         hermes cron add '0 9 * * *' 'Send cto-status-report to founder'"
+  echo "         hermes cron create --name 'oh-my-hermes cto-status-report' --deliver origin '0 9 * * *' 'Send cto-status-report to founder'"
   CRON_FAIL=1
 fi
 
-if [ -n "$GITHUB_REPO" ]; then
-  if hermes cron add "0 9 * * 1" "Run security-review supply chain assessment for $GITHUB_REPO" 2>/dev/null; then
-    ok "cron: weekly supply chain security assessment (Monday 9am)"
+if [ -n "${GITHUB_REPO:-}" ]; then
+  if create_cron_job "0 9 * * 1" "oh-my-hermes weekly-security-review" "Run security-review supply chain assessment for $GITHUB_REPO" "local"; then
+    :
   else
     warn "Could not add supply chain cron. Add manually:"
-    echo "         hermes cron add '0 9 * * 1' 'Run security-review supply chain assessment for $GITHUB_REPO'"
+    echo "         hermes cron create --name 'oh-my-hermes weekly-security-review' --deliver local '0 9 * * 1' 'Run security-review supply chain assessment for $GITHUB_REPO'"
     CRON_FAIL=1
   fi
 else
@@ -349,7 +383,7 @@ else
   echo "  hermes kanban watch       # open live kanban board"
   echo ""
   echo "Then lock persistent focus (Hermes v0.13+):"
-  if [ -n "$GITHUB_REPO" ]; then
+  if [ -n "${GITHUB_REPO:-}" ]; then
     echo "  /goal Manage $GITHUB_REPO as CTO. Triage issues hourly, implement top"
     echo "        priority, get founder approval before merging. Never ship without YES."
   else
