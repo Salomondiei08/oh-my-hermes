@@ -1,50 +1,59 @@
 ---
 name: design-handoff
-description: Use when design-output.md exists in the current directory after a Claude Design session and implementation has not yet started
-version: 1.0.0
-tags: [design, handoff, implementation, spec]
+description: Use when a product or feature has user-facing behavior that should be designed and made testable before implementation
+version: 2.0.0
+tags: [design, ux, responsive, implementation, verification]
 ---
 
 ## Overview
 
-Converts raw Claude Design session notes into a structured implementation spec. Removes ambiguity before code is written.
+Lets the Designer create or refine a compact design contract and translate it
+into implementation-ready behavior. External design notes are optional input,
+not a prerequisite.
 
 ## When to Use
 
-- `design-output.md` exists in the current directory
-- About to route to Claude Code or Codex for implementation
-- Design notes are in prose and need to become concrete engineering tasks
+- A feature adds or changes user-facing screens or interactions.
+- A new product needs a visual direction.
+- Existing UI needs a coherent redesign or responsive behavior.
 
 ## Prerequisites
 
-- `design-output.md` in current directory with exported design notes
-- `product-brief-[project-name]` in Hermes memory (recommended, not required)
+- `PRODUCT_BRIEF.md` or equivalent product context.
+- Access to the existing product when modifying a live design.
 
 ## Procedure
 
-1. Read `design-output.md` from current directory
-2. Generate implementation spec with these sections:
-   - **Components to build** — name, description, props/data needed
-   - **Data requirements** — what each component needs and where it comes from
-   - **Routes / Pages** — each route and what renders there
-   - **API endpoints** — method, path, request shape, response shape
-   - **Database changes** — new tables, columns, indexes, RLS policies
-   - **Interactions** — click handlers, form submissions, real-time updates
-   - **Edge cases** — from the design output
-   - **Implementation order** — data layer → API → components → integration
-3. Mark ambiguous items `[NEEDS CLARIFICATION]` — do not guess
-4. Save to Hermes memory: key `implementation-spec-[feature-name]`
-5. Write to `IMPLEMENTATION_SPEC.md` in current directory
-6. Run `choose-engine` to route to the appropriate coding engine
+1. Read the brief, existing interface, design system, and supplied references.
+2. If a material visual choice remains, propose one recommended direction and
+   at most two alternatives. Continue with the recommendation if skipped.
+3. Write `DESIGN.md` with:
+   - User flow and information hierarchy
+   - Screen/component responsibilities
+   - Interaction and navigation behavior
+   - Loading, empty, error, success, and long-content states
+   - Mobile and desktop behavior
+   - Accessibility requirements
+   - Visual direction and asset requirements
+   - Observable design acceptance criteria
+   - Assumptions
+4. Write or update `IMPLEMENTATION_SPEC.md` only with engineering-relevant
+   routes, components, data, interactions, and implementation order.
+5. Save the implementation summary to Hermes memory.
+6. After implementation, inspect the rendered product with browser tools. Use
+   `computer-use` only when native or authenticated GUI operation is required.
+7. Return concrete discrepancies to Builder and re-check the corrected output.
 
 ## Pitfalls
 
-- Do not guess at data shapes not in the design output. Mark `[NEEDS CLARIFICATION]`.
-- Do not assume database schema unless stated in design or product brief.
-- Always start implementation order with the data layer — not UI components.
+- Do not require Claude Design or another external design session.
+- Do not invent backend architecture as a design decision.
+- Do not approve static code without inspecting rendered behavior.
+- Do not apply a generic visual style that ignores the product domain.
 
 ## Verification
 
-- `IMPLEMENTATION_SPEC.md` exists in current directory
-- All ambiguities marked `[NEEDS CLARIFICATION]`
-- Spec retrievable from Hermes memory as `implementation-spec-[feature-name]`
+- `DESIGN.md` and required implementation guidance exist.
+- Mobile and desktop screenshots were inspected for implemented UI.
+- Design acceptance criteria map to Reviewer checks.
+- Unanswered optional preferences are documented assumptions, not blockers.

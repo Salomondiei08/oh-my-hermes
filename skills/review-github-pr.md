@@ -1,85 +1,66 @@
 ---
 name: review-github-pr
-description: Use when a PR has been created and needs to be self-reviewed before presenting to the user for merge approval
-version: 1.0.0
-tags: [github, pr, review, autonomous, quality]
+description: Use when a built product increment has a pull request that needs independent behavioral, visual, and code review before release approval
+version: 2.0.0
+tags: [github, pr, review, product, quality]
+metadata:
+  hermes:
+    tags: [github, pr, review, quality]
+    requires_toolsets: [terminal, browser]
 ---
 
 ## Overview
 
-Hermes reviews its own PR: checks the diff for quality, runs build and typecheck, runs health check on the preview URL, writes a plain-English summary for the founder. No jargon — written for a non-technical reader.
+Reviews the product increment represented by a PR. It verifies acceptance
+criteria and the running preview, then submits an approve or request-changes
+review and prepares a founder-facing release summary.
 
 ## When to Use
 
-- Immediately after `create-github-pr` completes
-- Part of the `cto-loop` workflow
-- Before loading `await-merge-approval`
+- Builder has completed an increment and opened a PR.
+- A new push invalidates a prior review.
+- Founder asks whether a PR is ready to ship or should be closed.
 
 ## Prerequisites
 
-- PR created and push to branch complete
-- Vercel preview URL available (auto-generated when PR is opened with GitHub integration)
-- `gh` CLI authenticated
+- PR number and linked task or product brief.
+- Authenticated `gh` CLI.
+- Preview or local runtime when user-facing behavior changed.
+- Security result for security-relevant changes.
 
 ## Procedure
 
-1. **Get PR details:**
+1. Read the brief, task acceptance criteria, Designer criteria, and Builder
+   completion evidence.
+2. Inspect PR metadata, diff, commits, and checks:
    ```bash
-   gh pr view [number] --json number,title,body,url,headRefName,files
+   gh pr view [number] --json number,title,body,url,headRefName,files,commits
    gh pr diff [number]
-   ```
-
-2. **Check automated status:**
-   ```bash
    gh pr checks [number]
    ```
-   Wait up to 3 minutes for CI checks to complete. If still running, note "CI in progress."
-
-3. **Review the diff.** Flag any of:
-   - New env vars added but not in `.env.example`
-   - Secrets or API keys hardcoded
-   - TODO or FIXME comments left in production code
-   - Files changed outside the expected scope (scope creep)
-   - Missing error handling at API boundaries
-
-4. **Health check preview URL:**
-   - Vercel preview URL format: `https://[repo]-[branch]-[org].vercel.app`
-   - Load `health-check` with the preview URL
-   - Record: PASS / FAIL + response time
-
-5. **Compose founder summary** (plain English, no jargon):
-   ```
-   PR #[n]: [title]
-   ───────────────────────────────
-   What changed:
-   [2-3 sentences: what the feature or fix does, in plain language]
-
-   Files touched: [n] files
-   [list the most important ones with one-line plain-English description]
-
-   Quality checks:
-   ✓ Build: passing
-   ✓ Preview health: OK (200ms)
-   ✓ No secrets detected
-   [any flags or warnings]
-
-   Preview link: [url]
-   Full diff:    [gh pr url]
-
-   Ready to merge to production? Reply YES to merge, NO to skip.
-   ```
-
-6. **Load `await-merge-approval`** with the PR number and summary.
+3. Verify scope, error handling, environment changes, tests, and operational
+   impact. Do not duplicate Security's specialized review.
+4. Exercise each acceptance criterion on the preview or local runtime. For UI,
+   inspect narrow and desktop viewports plus loading, empty, error, and success
+   states.
+5. Choose one outcome:
+   - PASS: `gh pr review [number] --approve --body "[evidence summary]"`
+   - REQUEST CHANGES: `gh pr review [number] --request-changes --body "[specific reproducible findings]"`
+   - BLOCKED: comment with the missing access or environment and block the task.
+6. On PASS, send a short founder summary: user outcome, checks, security status,
+   preview, limitations, and `YES / NO / CLOSE / LATER` choices.
+7. Load `await-merge-approval`. Never merge directly from review.
 
 ## Pitfalls
 
-- If health check FAILS on preview: do NOT load `await-merge-approval`. Fix the issue first or label the PR `blocked` and notify the founder.
-- If secrets are detected in the diff: stop immediately, alert founder, do not proceed to approval.
-- Write the summary for someone who does not read code. "Updated the login button" not "Refactored auth middleware token validation."
+- A green CI run is not evidence that the user journey works.
+- A prior approval becomes stale after behavior-changing pushes; review again.
+- Do not close a PR because the founder replied NO. NO means request changes;
+  CLOSE must be explicit.
+- Do not expose raw logs, secrets, or internal reasoning in the review.
 
 ## Verification
 
-- PR checks status retrieved
-- Health check run on preview URL
-- Founder summary written in plain English
-- `await-merge-approval` loaded with summary
+- Every acceptance criterion has evidence or a named blocker.
+- GitHub contains an approve or request-changes review.
+- Founder received the release summary only after PASS.

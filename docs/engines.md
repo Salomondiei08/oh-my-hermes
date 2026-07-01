@@ -1,143 +1,59 @@
 # Engine Routing
 
-## The question
+Choose the smallest capable execution surface.
 
-When you are about to do work, which engine should do it?
+```text
+Product strategy, design direction, orchestration, ops, memory, scheduling
+  -> Hermes specialist agent
 
-This is not a preference question. There are concrete criteria.
+Native macOS or authenticated GUI with no better interface
+  -> Hermes computer-use skill
 
----
+Targeted, well-defined code change
+  -> Codex
 
-## Decision framework
+Cross-module feature, architecture, or broad refactor
+  -> Claude Code
 
+Launch motion graphics from product evidence
+  -> Designer + HyperFrames through creative-production
 ```
-Is this UI/UX work before any code exists?
-  → Claude Design (human-in-the-loop)
-  → Then run design-handoff skill to produce an implementation spec
-
-Is this an operational task?
-  (deploy, monitor, notify, schedule, remember, check health)
-  → Hermes directly
-
-Is the task complex, multi-file, or requires architectural judgment?
-  → Claude Code
-
-Is the task targeted, well-defined, and involves 1-2 files?
-  → Codex
-
-Are you unsure?
-  → Run the choose-engine skill in Hermes
-```
-
----
-
-## Claude Code
-
-**Use when:**
-- Building a new feature from scratch
-- Refactoring across multiple files
-- Writing a test suite
-- The implementation requires making many unknown decisions
-- The task involves understanding a complex codebase and changing multiple parts
-
-**Avoid when:**
-- The change is one file and the fix is already decided
-- You need a fast prototype to test an idea
-
-**Strengths:**
-- Full file system access and git integration
-- Can run commands and observe output
-- Handles complex multi-step reasoning across many files
-- AGENTS.md aware (reads your project conventions)
-- Strong at test-writing and maintaining type safety
-
-**Context handoff from Hermes:**
-Before launching Claude Code, Hermes should pass: the task description, relevant memory entries (architecture decisions, prior implementations), and the implementation spec from design-handoff if a design step happened.
-
-The `implement-with-claude-code` skill handles this handoff.
-
----
-
-## Codex
-
-**Use when:**
-- Fixing a specific bug in a known file
-- Making a targeted change with a clear outcome
-- Exploring how something works before committing to full implementation
-- Fast iteration on a prototype
-
-**Avoid when:**
-- The task requires understanding 10+ files simultaneously
-- There are many unknown decisions to make during implementation
-
-**Strengths:**
-- Fast
-- Good at targeted, self-contained changes
-- Useful for quick exploration and experimentation
-
-The `implement-with-codex` skill handles context handoff.
-
----
 
 ## Hermes
 
-**Use when:**
-- Deploying to Vercel
-- Running database migrations
-- Sending notifications
-- Setting up or checking monitoring
-- Scheduling recurring tasks
-- Remembering context across sessions
-- Orchestrating a sequence of engine calls
+Hermes is the long-lived product operator. It can inspect and edit projects
+directly, load skills, use browser/CUA tools, schedule work, manage memory, and
+delegate specialized coding when that improves reliability.
 
-Hermes does not write application code directly. It delegates coding to Claude Code or Codex. Hermes coordinates: loads skills, passes context, calls tools, records results in memory, routes to the next step.
+Use Hermes directly for product briefs, design contracts, routine project edits,
+deployments, monitoring, notifications, research, and orchestration.
 
----
+## Codex
 
-## Claude Design
+Use for bounded code changes with clear outcomes, fast exploration, and focused
+fixes. Pass the product/design acceptance criteria and required evidence.
 
-**Use when:**
-- Starting a new app and UI/UX decisions have not been made
-- Exploring visual directions before committing to code
-- Generating wireframes or component specs
+## Claude Code
 
-There is no Claude Design API. This step always requires a human.
+Use for new features, architectural changes, test suites, and changes requiring
+judgment across many files. Pass the brief, design contract, constraints, and
+verification commands.
 
-Protocol:
-1. Open Claude Design at claude.ai/design
-2. Describe what you are building
-3. Export design decisions as text
-4. Give text to Hermes, run `design-handoff` skill
-5. Hermes converts to implementation spec and saves to memory
-6. Hermes routes spec to Claude Code or Codex
+## Computer Use
 
-See `docs/design-handoff.md` for the full protocol.
+Computer Use is a capability, not a coding engine. Prefer API, file, terminal,
+and browser tools. Use CUA only for native or authenticated GUI workflows, and
+retain approval gates for external or destructive actions.
 
----
+## Designer
 
-## Engine comparison
+The Hermes Designer owns product UX and creative direction. It may consume human
+mockups or external design-tool output, but no external design session is
+required. It writes `DESIGN.md`, verifies rendered output, and uses HyperFrames
+for requested launch video.
 
-| Dimension | Hermes | Claude Code | Codex | Claude Design |
-|---|---|---|---|---|
-| Writes app code | No (delegates) | Yes | Yes | No |
-| Runs shell commands | Yes | Yes | Limited | No |
-| Long-lived across sessions | Yes | No | No | No |
-| Memory/context | Persistent | Per-session | Per-session | Per-session |
-| Best for | Orchestration, ops | Complex multi-file coding | Quick targeted coding | UI/UX exploration |
-| Human required | No | No | No | Yes |
+## Question Rule
 
----
-
-## The choose-engine skill
-
-Run this when unsure:
-
-```
-tell hermes: I need to [describe task]. Which engine should I use?
-→ Hermes loads choose-engine skill
-→ Hermes asks 2-3 clarifying questions
-→ Hermes recommends an engine and explains why
-→ Hermes offers to launch the implement skill for that engine
-```
-
-Skill documented in `skills/choose-engine.md`.
+Routing uncertainty should rarely block work. Inspect the task, recommend an
+engine, state the assumption, and continue. Ask only if engine choice changes
+cost, credentials, irreversible state, or a material product outcome.

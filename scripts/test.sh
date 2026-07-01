@@ -18,7 +18,10 @@ for skill in \
   setup-monitoring health-check send-notification post-deploy-followup \
   manage-github-issues create-github-pr auto-issue-triage review-github-pr \
   await-merge-approval kanban-task cto-status-report backup-hermes-data \
-  security-review onboarding; do
+  security-review onboarding rollback computer-use product-marketing \
+  creative-production observe-logs publish-with-buffer generate-with-seedance \
+  project-switch project-status failure-recovery server-bootstrap \
+  ship-this-idea reset-runtime; do
   if [ -f "$HERMES_DIR/skills/$skill.md" ]; then
     ok "  skill: $skill"
   else
@@ -28,7 +31,7 @@ done
 
 echo ""
 echo "Workflows:"
-for wf in idea-to-deploy design-to-code deploy-and-monitor github-ops cto-loop; do
+for wf in idea-to-deploy design-to-code deploy-and-monitor github-ops cto-loop ship-this-idea; do
   if [ -f "$HERMES_DIR/workflows/$wf.md" ]; then
     ok "  workflow: $wf"
   else
@@ -38,7 +41,7 @@ done
 
 echo ""
 echo "Agents:"
-for agent in cto pm dev qa ops security; do
+for agent in cto pm designer dev qa ops security; do
   if [ -f "$HERMES_DIR/agents/$agent.md" ]; then
     ok "  agent: $agent"
   else
@@ -65,6 +68,14 @@ for cmd in curl git jq gh vercel node npm rg ffmpeg; do
     ok "  $cmd"
   else
     fail "  $cmd not found"
+  fi
+done
+
+for script in setup-integrations.sh project.sh status.sh run-cron-safe.sh reset-runtime.sh server-bootstrap.sh ship-this-idea.sh; do
+  if [ -x "$HERMES_DIR/scripts/$script" ]; then
+    ok "  $script"
+  else
+    fail "  $script missing or not executable in ~/.hermes/scripts"
   fi
 done
 

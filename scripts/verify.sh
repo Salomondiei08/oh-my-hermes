@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 
+<<<<<<< HEAD
 HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
+=======
+export PATH="$HOME/.local/bin:$HOME/.hermes/hermes-agent/venv/bin:$PATH"
+
+HERMES_DIR="$HOME/.hermes"
+>>>>>>> origin/product-loop-integrations-cleanup
 SKILLS_DIR="$HERMES_DIR/skills"
 WORKFLOWS_DIR="$HERMES_DIR/workflows"
 PASS=0
@@ -60,11 +66,24 @@ check "backup-hermes-data"         "$SKILLS_DIR/backup-hermes-data.md"
 check "security-review"            "$SKILLS_DIR/security-review.md"
 check "onboarding"                 "$SKILLS_DIR/onboarding.md"
 check "rollback"                   "$SKILLS_DIR/rollback.md"
+check "computer-use"               "$SKILLS_DIR/computer-use.md"
+check "product-marketing"          "$SKILLS_DIR/product-marketing.md"
+check "creative-production"        "$SKILLS_DIR/creative-production.md"
+check "observe-logs"               "$SKILLS_DIR/observe-logs.md"
+check "publish-with-buffer"        "$SKILLS_DIR/publish-with-buffer.md"
+check "generate-with-seedance"     "$SKILLS_DIR/generate-with-seedance.md"
+check "project-switch"             "$SKILLS_DIR/project-switch.md"
+check "project-status"             "$SKILLS_DIR/project-status.md"
+check "failure-recovery"           "$SKILLS_DIR/failure-recovery.md"
+check "server-bootstrap"           "$SKILLS_DIR/server-bootstrap.md"
+check "ship-this-idea"             "$SKILLS_DIR/ship-this-idea.md"
+check "reset-runtime"              "$SKILLS_DIR/reset-runtime.md"
 
 echo ""
 echo "Agents:"
 check "cto"      "$HERMES_DIR/agents/cto.md"
 check "pm"       "$HERMES_DIR/agents/pm.md"
+check "designer" "$HERMES_DIR/agents/designer.md"
 check "dev"      "$HERMES_DIR/agents/dev.md"
 check "qa"       "$HERMES_DIR/agents/qa.md"
 check "ops"      "$HERMES_DIR/agents/ops.md"
@@ -77,11 +96,12 @@ check "design-to-code"     "$WORKFLOWS_DIR/design-to-code.md"
 check "deploy-and-monitor" "$WORKFLOWS_DIR/deploy-and-monitor.md"
 check "github-ops"         "$WORKFLOWS_DIR/github-ops.md"
 check "cto-loop"           "$WORKFLOWS_DIR/cto-loop.md"
+check "ship-this-idea"     "$WORKFLOWS_DIR/ship-this-idea.md"
 
 echo ""
 echo "Hermes profiles (optional; run setup-cto.sh if missing):"
 PROFILES_DIR="$HERMES_DIR/profiles"
-for profile in cto pm dev qa ops security; do
+for profile in cto pm designer dev qa ops security; do
   if [ -d "$PROFILES_DIR/$profile" ]; then
     echo "[OK]      profile: $profile"
     PASS=$((PASS + 1))
@@ -107,6 +127,14 @@ check "verify.sh"          "$SCRIPT_DIR/verify.sh"
 check "setup-cto.sh"       "$SCRIPT_DIR/setup-cto.sh"
 check "uninstall.sh"       "$SCRIPT_DIR/uninstall.sh"
 check "validate-skills.sh" "$SCRIPT_DIR/validate-skills.sh"
+check "setup-integrations.sh (source)" "$SCRIPT_DIR/setup-integrations.sh"
+check "setup-integrations.sh (installed)" "$HERMES_DIR/scripts/setup-integrations.sh"
+check "project.sh (installed)" "$HERMES_DIR/scripts/project.sh"
+check "status.sh (installed)" "$HERMES_DIR/scripts/status.sh"
+check "run-cron-safe.sh (installed)" "$HERMES_DIR/scripts/run-cron-safe.sh"
+check "reset-runtime.sh (installed)" "$HERMES_DIR/scripts/reset-runtime.sh"
+check "server-bootstrap.sh (installed)" "$HERMES_DIR/scripts/server-bootstrap.sh"
+check "ship-this-idea.sh (installed)" "$HERMES_DIR/scripts/ship-this-idea.sh"
 
 echo ""
 echo "=============================="

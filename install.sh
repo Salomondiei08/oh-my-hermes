@@ -6,6 +6,7 @@ HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
 SKILLS_DIR="$HERMES_DIR/skills"
 WORKFLOWS_DIR="$HERMES_DIR/workflows"
 AGENTS_DIR="$HERMES_DIR/agents"
+<<<<<<< HEAD
 if [ "${#BASH_SOURCE[@]}" -gt 0 ] && [ -n "${BASH_SOURCE[0]:-}" ]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 else
@@ -20,6 +21,10 @@ cleanup() {
   fi
 }
 trap cleanup EXIT
+=======
+SCRIPTS_DIR="$HERMES_DIR/scripts"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+>>>>>>> origin/product-loop-integrations-cleanup
 
 echo "Oh My Hermes — installer"
 echo "========================"
@@ -34,6 +39,7 @@ if [ ! -d "$HERMES_DIR" ]; then
   exit 1
 fi
 
+<<<<<<< HEAD
 # When this installer is run via curl | bash, SCRIPT_DIR is just the caller's cwd
 # and the repo-local skills/workflows/agents folders are not present. Clone a
 # temporary copy instead of silently installing zero files.
@@ -46,6 +52,26 @@ if [ ! -d "$WORK_DIR/skills" ] || [ ! -d "$WORK_DIR/workflows" ] || [ ! -d "$WOR
     echo "  cd /tmp/oh-my-hermes && bash install.sh"
     exit 1
   fi
+=======
+if [ ! -d "$SCRIPT_DIR/skills" ] \
+  || [ ! -d "$SCRIPT_DIR/workflows" ] \
+  || [ ! -d "$SCRIPT_DIR/agents" ] \
+  || [ ! -d "$SCRIPT_DIR/scripts" ]; then
+  echo ""
+  echo "[ERROR] install.sh must be run from a full Oh My Hermes checkout."
+  echo "        This installer copies repo files; piping only install.sh is not enough."
+  echo ""
+  echo "        Run:"
+  echo "          git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes"
+  echo "          bash /tmp/oh-my-hermes/install.sh"
+  exit 1
+fi
+
+mkdir -p "$SKILLS_DIR"
+mkdir -p "$WORKFLOWS_DIR"
+mkdir -p "$AGENTS_DIR"
+mkdir -p "$SCRIPTS_DIR"
+>>>>>>> origin/product-loop-integrations-cleanup
 
   TEMP_DIR="$(mktemp -d)"
   echo "[INFO] Repo files not found next to installer; cloning temporary copy..."
@@ -59,12 +85,32 @@ if [ ! -d "$WORK_DIR/skills" ] || [ ! -d "$WORK_DIR/workflows" ] || [ ! -d "$WOR
   WORK_DIR="$TEMP_DIR/oh-my-hermes"
 fi
 
+<<<<<<< HEAD
 for required in skills workflows agents scripts; do
   if [ ! -d "$WORK_DIR/$required" ]; then
     echo "[ERROR] Missing required repo directory: $WORK_DIR/$required"
     exit 1
   fi
 done
+=======
+# Install Oh My Hermes helper scripts.
+SCRIPTS_INSTALLED=0
+for script in "$SCRIPT_DIR/scripts"/*.sh; do
+  [ -f "$script" ] || continue
+  install -m 700 "$script" "$SCRIPTS_DIR/$(basename "$script")"
+  SCRIPTS_INSTALLED=$((SCRIPTS_INSTALLED + 1))
+done
+
+# Install workflows
+WORKFLOWS_INSTALLED=0
+if [ -d "$SCRIPT_DIR/workflows" ]; then
+  for workflow in "$SCRIPT_DIR/workflows"/*.md; do
+    [ -f "$workflow" ] || continue
+    cp "$workflow" "$WORKFLOWS_DIR/"
+    WORKFLOWS_INSTALLED=$((WORKFLOWS_INSTALLED + 1))
+  done
+fi
+>>>>>>> origin/product-loop-integrations-cleanup
 
 mkdir -p "$SKILLS_DIR" "$WORKFLOWS_DIR" "$AGENTS_DIR"
 
@@ -100,6 +146,7 @@ echo ""
 echo "[OK] Skills installed:    $SKILLS_INSTALLED → $SKILLS_DIR"
 echo "[OK] Workflows installed: $WORKFLOWS_INSTALLED → $WORKFLOWS_DIR"
 echo "[OK] Agents installed:    $AGENTS_INSTALLED → $AGENTS_DIR"
+echo "[OK] Scripts installed:   $SCRIPTS_INSTALLED → $SCRIPTS_DIR"
 echo ""
 echo "Next steps:"
 echo "  1. git clone $OH_MY_HERMES_REPO /tmp/oh-my-hermes  # if you do not already have the repo"
