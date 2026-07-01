@@ -11,6 +11,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install CI dependencies
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep ffmpeg
+          npm install -g vercel
+
       - name: Install Oh My Hermes into fake ~/.hermes
         run: |
           mkdir -p ~/.hermes/skills ~/.hermes/workflows ~/.hermes/agents
