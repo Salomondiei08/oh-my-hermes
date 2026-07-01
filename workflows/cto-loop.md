@@ -1,142 +1,133 @@
 ---
 name: cto-loop
-description: Fully autonomous multi-agent CTO system with kanban tracking and founder approval gate
-version: 2.0.0
-tags: [autonomous, cto, workflow, github, kanban, agents]
+description: Build, launch, operate, and improve a product through a minimal seven-agent lifecycle with founder approval at irreversible boundaries
+version: 3.0.0
+tags: [product, build, design, launch, operations, growth, agents]
 ---
 
 ## Overview
 
-Six specialized agents coordinate the CTO loop. The founder sees a kanban board and gets a plain-English message when something needs approval. Nothing ships without a human YES.
+The CTO coordinates one product loop:
+
+```text
+Understand -> Design -> Build -> Check -> Ship -> Learn
+```
+
+PRs and GitHub issues support this loop but do not define it. Work may begin
+from a founder idea, customer feedback, production evidence, product analytics,
+or an issue.
 
 ## Agents
 
-| Agent | Role | Triggers |
-|---|---|---|
-| **CTO Agent** | Orchestrates, monitors, escalates | Always running |
-| **PM Agent** | Triages GitHub issues → kanban tickets | Hourly cron |
-| **Dev Agent** | Implements tickets → PRs | PM assigns |
-| **Security Agent** | Checks PR security and weekly supply chain risk | PR ready + weekly cron |
-| **QA Agent** | Reviews PRs → founder summary | Dev completes PR |
-| **Ops Agent** | Deploys, monitors, notifies | Merge + scheduled |
+| Agent | Owns |
+|---|---|
+| CTO | Lifecycle, roadmap, delegation, founder communication |
+| Product (`pm`) | Brief, priorities, positioning, SEO, content strategy |
+| Designer | UX, visual direction, design verification, launch media |
+| Builder (`dev`) | Working product increments and implementation evidence |
+| Reviewer (`qa`) | User journeys, visual/accessibility checks, PR review |
+| Security | Release risk and recurring security assessment |
+| Ops | Deployments, health, logs, incidents, rollback proposals |
 
-## The loop
+Computer use is a guarded shared skill, not an agent.
 
-```
-CRON — every hour
-  │
-  ▼
-PM AGENT: auto-issue-triage
-  ├─ No actionable issues → "All caught up" → sleep
-  ├─ Issue too vague → ask founder for clarification → sleep
-  └─ Issue scored + ticketed → kanban-task (ready, assignee=dev)
-        │
-        ▼
-CTO AGENT: reviews ready work and keeps the loop moving
+## Loop
 
-DEV AGENT: dispatcher claims top ready ticket
-  ├─ kanban-task (running)
-  ├─ choose-engine → implement
-  └─ create-github-pr
-        │ handoff summary + metadata
-        ▼
-SECURITY AGENT: security-review
-  ├─ Critical/High → kanban-task (blocked) → alert founder → Dev fixes
-  └─ Clean/Medium  → hand to QA Agent
-        │
-        ▼
-QA AGENT: review-github-pr
-  ├─ FAIL → kanban-task (blocked) → feedback to Dev → Dev fixes
-  └─ PASS → founder summary
-        │ kanban comment + approval request
-        ▼
-CTO AGENT: await-merge-approval
-  ├─ YES → gh pr merge
-  │     │
-  │     ▼
-  │  OPS AGENT: post-deploy-followup
-  │     ├─ health check PASS → kanban-task (done) → notify founder
-  │     └─ health check FAIL → incident → alert founder → kanban-task (blocked)
-  │
-  ├─ NO  → feedback saved → reopen issue → kanban-task (ready) → loop
-  └─ LATER → remind in 2h → loop
-```
+### 1. Understand
 
-## Kanban board (what the founder sees)
+- Product reads the repository, current product, feedback, and memory.
+- `clarify-requirements` asks at most three questions only if needed.
+- Unanswered optional questions use documented defaults.
+- `product-brief` writes the compact source of truth.
 
-```
-Triage        Todo           Ready          Running        Blocked       Done
-────────      ──────         ─────          ───────        ───────       ────
-Raw idea      Waiting dep    #42 Login      #38 Fix        #40 Needs     #39 Dark mode
-#45 CSV       Payment spec   PR review      redirect       approval      #37 Bug fix
-```
+### 2. Design
 
-## Monitoring (Ops Agent, always on)
+- Skip only when no user-facing behavior or creative direction changes.
+- Designer writes `DESIGN.md` and implementation-relevant guidance.
+- Founder chooses only when alternatives have materially different outcomes.
+- Silence accepts the recommended reversible direction.
 
-Cron jobs Hermes sets up automatically:
+### 3. Build
+
+- CTO decomposes the approved outcome into dependent kanban tasks.
+- Builder claims one ready task and implements the smallest complete increment.
+- Parallel work is used only for independent tasks and isolated with worktrees.
+- Completion includes acceptance-criteria, test, runtime, and change evidence.
+
+### 4. Check
+
+- Security reviews relevant trust boundaries and dependencies.
+- Reviewer exercises acceptance criteria against a running preview or local app.
+- Failures return to Builder with reproducible evidence.
+- A PR may carry the review, but green PR checks alone do not complete the stage.
+
+### 5. Ship
+
+- CTO sends one founder summary with user outcome, evidence, preview, and known
+  limitations.
+- Founder chooses YES, NO, CLOSE, or LATER.
+- On YES, Ops releases and runs post-deploy health plus log observation.
+- Rollback, destructive actions, and production data changes require approval.
+
+### 6. Learn
+
+- Ops watches availability and deduplicated runtime errors.
+- Product reviews customer, product, search, and campaign evidence.
+- Product proposes the next smallest outcome or updates positioning.
+- Designer and Product may create approved launch content from real shipped work.
+
+## Task Model
+
+Use the existing Hermes statuses: Triage, Todo, Ready, Running, Blocked, Done.
+Represent lifecycle stage, acceptance criteria, dependencies, and evidence in the
+task body and metadata. Do not create a second workflow database.
+
+Each task includes:
+
+- Product outcome and reason
+- Stage and owner
+- 2-5 acceptance criteria
+- Assumptions and dependencies
+- Required completion evidence
+
+## Question Policy
+
+- Read first and infer defaults.
+- Ask at most three questions in one message.
+- Give a recommended default for each.
+- Continue when questions are skipped or unanswered.
+- Stop only for credentials, payment, destructive action, legal/licensing risk,
+  public publication, or irreversible production decisions.
+
+## Scheduled Work
 
 ```bash
+hermes cron add "0 * * * *"    "Review product work and actionable GitHub issues for [owner/repo]"
 hermes cron add "*/15 * * * *" "Run health-check on [production-url]"
-hermes cron add "0 * * * *"    "Run auto-issue-triage for [owner/repo]"
+hermes cron add "15 * * * *"   "Run observe-logs for [production-url]"
 hermes cron add "0 9 * * *"    "Send cto-status-report to founder"
-hermes cron add "0 9 * * 1"    "Run security-review supply chain assessment for [owner/repo]"
+hermes cron add "30 8 * * *"   "Run security-review daily mode for [owner/repo]"
+hermes cron add "0 9 * * 1"    "Run security-review weekly mode for [owner/repo]"
 ```
-
-## Multi-agent execution
-
-Hermes supports spawning up to 3 parallel sub-agents. In the CTO loop:
-- The **CTO Agent** (main session) orchestrates and monitors
-- It spawns **PM**, **Dev**, **Security**, **QA**, and **Ops** as sub-agents when assigning work
-- Sub-agents share memory and kanban with the main session
-- Max 3 parallel tasks at once (Hermes default)
 
 ## Setup
 
-Run `scripts/setup-cto.sh` first (creates profiles, kanban, crons). Then tell Hermes:
+Run `scripts/setup-cto.sh`, or tell Hermes:
 
-```
-Set up the CTO loop for [owner/repo]. 
-Send approvals to me on [Telegram / Slack / Discord / WhatsApp].
-```
-
-Then lock persistent focus with `/goal` (Hermes v0.13+):
-
-```
-/goal Manage github.com/[owner/repo] as CTO. Triage issues hourly, implement top priority, send founder approval before merging. Never ship without YES.
+```text
+Set up the CTO product loop for this project. Use sensible defaults and only ask
+me about choices that materially change the product.
 ```
 
-`/goal` prevents context drift across long sessions — without it agents lose focus after many turns. Re-run `/goal` any time you restart the CTO session.
+Then set persistent focus:
 
-What Hermes does on setup:
-1. Saves `github-repo` and `approval-platform` to memory
-2. Creates profiles for CTO, PM, Dev, Security, QA, and Ops agents
-3. Runs `hermes cron add` for triage, health check, morning report, and weekly security assessment
-4. Confirms setup and shows the live kanban board
-
-## Live board
-
-```bash
-hermes kanban watch    # live dashboard — see all tasks in real time
-hermes kanban list     # snapshot of current tasks
+```text
+/goal Build, launch, operate, and improve [product]. Keep one product outcome
+active, verify before shipping, and ask me only at irreversible boundaries.
 ```
 
-## Customization (tell Hermes anytime)
+## Founder Experience
 
-```
-pause the CTO loop until Monday
-only work on bugs this week
-skip issue #42, it's blocked on design
-make triage run every 30 minutes
-show me the kanban board
-what is the Dev Agent working on right now?
-```
-
-Use `/steer` (v0.13+) to course-correct mid-run without interrupting the current task:
-```
-/steer prioritize the payment bug above everything else
-/steer skip tests this sprint, we need to ship
-```
-
-## What the founder actually does
-
-Receive a message. Read 10 lines. Reply YES or NO. That's it.
+The founder gives direction, reviews meaningful product/design choices, approves
+releases and public content, and receives concise outcome/incident reports. The
+founder does not manage agent handoffs or routine implementation decisions.

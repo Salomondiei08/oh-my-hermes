@@ -29,10 +29,12 @@ bash install.sh
 Non-interactive install is also supported. The installer will clone a temporary copy if it is run through `curl | bash`:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
+git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes
+bash /tmp/oh-my-hermes/install.sh
 ```
 
-Installs 23 skills, 5 workflows, and 6 agent role definitions into `~/.hermes/` or `$HERMES_HOME` when set.
+Installs 36 skills, 6 workflows, 7 agent role definitions, and helper scripts
+into `~/.hermes/`.
 
 ---
 
@@ -57,6 +59,13 @@ Creates `AGENTS.md` and `.env.example` if they do not already exist.
 
 If the project is detected as a Next.js App Router app, it also creates `src/app/api/health/route.ts`. For non-Next.js projects, the health endpoint is skipped instead of creating framework-specific files in the wrong stack.
 
+For a brand-new server, prefer the installed server bootstrap:
+
+```bash
+bash ~/.hermes/scripts/server-bootstrap.sh --project myapp --repo owner/repo --telegram
+bash ~/.hermes/scripts/status.sh
+```
+
 ---
 
 ## Step 4 — Configure the CTO loop
@@ -78,7 +87,7 @@ For unattended setup, pass explicit confirmation:
 OH_MY_HERMES_SETUP_CTO_CONFIRM=1 bash /tmp/oh-my-hermes/scripts/setup-cto.sh
 ```
 
-Creates Hermes profiles (`cto`, `pm`, `dev`, `qa`, `ops`, `security`), initializes kanban, and schedules up to 4 cron jobs.
+Creates Hermes profiles (cto, pm, designer, dev, qa, security, ops), initializes kanban, and schedules available product, health, logs, report, and security jobs without duplicating existing named jobs.
 
 ---
 
@@ -87,7 +96,8 @@ Creates Hermes profiles (`cto`, `pm`, `dev`, `qa`, `ops`, `security`), initializ
 In Hermes v0.13+ environments that support `/goal`, run:
 
 ```
-/goal Manage [owner/repo] as CTO. Triage issues hourly, implement top priority, get founder approval before merging. Never ship without YES.
+/goal Build, launch, operate, and improve [product]. Keep one outcome active,
+verify it before shipping, and ask only at irreversible boundaries.
 ```
 
 If `/goal` is not available in your Hermes version, save this intent in your project `AGENTS.md` and/or Hermes memory instead.
@@ -98,10 +108,11 @@ If `/goal` is not available in your Hermes version, save this intent in your pro
 
 | Path | Contents |
 |---|---|
-| `~/.hermes/skills/` | 23 skills — full app lifecycle + CTO loop |
-| `~/.hermes/workflows/` | 5 workflows |
-| `~/.hermes/agents/` | 6 agent role definitions |
-| `~/.hermes/profiles/` | 6 active profiles (after setup-cto.sh) |
+| `~/.hermes/skills/` | 36 skills — complete product lifecycle + CTO loop |
+| `~/.hermes/workflows/` | 6 workflows |
+| `~/.hermes/agents/` | 7 agent role definitions |
+| `~/.hermes/scripts/` | setup, status, project switch, reset, dead-letter helpers |
+| `~/.hermes/profiles/` | 7 active profiles (after setup-cto.sh) |
 
 ---
 

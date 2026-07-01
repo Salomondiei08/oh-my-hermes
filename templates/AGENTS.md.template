@@ -56,7 +56,8 @@ Agents must follow these requirements for all changes:
 - Complex multi-file changes, new features, architecture → Claude Code
 - Quick targeted fixes, single-file changes → Codex
 - Deploy, monitor, notify, schedule, remember context → Hermes
-- UI/UX exploration before coding begins → Claude Design (human step)
+- Product UI/UX and visual verification → Hermes Designer Agent
+- Native/authenticated GUI work → computer-use only after API/browser paths
 - Not sure? Tell Hermes: "run choose-engine"
 
 ## Monitoring

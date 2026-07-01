@@ -6,6 +6,8 @@ HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
 SKILLS_DIR="$HERMES_DIR/skills"
 WORKFLOWS_DIR="$HERMES_DIR/workflows"
 AGENTS_DIR="$HERMES_DIR/agents"
+SCRIPTS_DIR="$HERMES_DIR/scripts"
+
 if [ "${#BASH_SOURCE[@]}" -gt 0 ] && [ -n "${BASH_SOURCE[0]:-}" ]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 else
@@ -96,10 +98,30 @@ if [ "$SKILLS_INSTALLED" -eq 0 ] || [ "$WORKFLOWS_INSTALLED" -eq 0 ] || [ "$AGEN
   exit 1
 fi
 
+# Install Oh My Hermes helper scripts.
+SCRIPTS_INSTALLED=0
+mkdir -p "$SCRIPTS_DIR"
+for script in "$WORK_DIR/scripts"/*.sh; do
+  [ -f "$script" ] || continue
+  install -m 700 "$script" "$SCRIPTS_DIR/$(basename "$script")"
+  SCRIPTS_INSTALLED=$((SCRIPTS_INSTALLED + 1))
+done
+
+# Install workflows
+WORKFLOWS_INSTALLED=0
+if [ -d "$WORK_DIR/workflows" ]; then
+  for workflow in "$WORK_DIR/workflows"/*.md; do
+    [ -f "$workflow" ] || continue
+    cp "$workflow" "$WORKFLOWS_DIR/"
+    WORKFLOWS_INSTALLED=$((WORKFLOWS_INSTALLED + 1))
+  done
+fi
+
 echo ""
 echo "[OK] Skills installed:    $SKILLS_INSTALLED → $SKILLS_DIR"
 echo "[OK] Workflows installed: $WORKFLOWS_INSTALLED → $WORKFLOWS_DIR"
 echo "[OK] Agents installed:    $AGENTS_INSTALLED → $AGENTS_DIR"
+echo "[OK] Scripts installed:   $SCRIPTS_INSTALLED → $SCRIPTS_DIR"
 echo ""
 echo "Next steps:"
 echo "  1. git clone $OH_MY_HERMES_REPO /tmp/oh-my-hermes  # if you do not already have the repo"

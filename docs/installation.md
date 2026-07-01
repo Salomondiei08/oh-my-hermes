@@ -16,27 +16,22 @@ Use a current Hermes Agent build with `profile`, `cron`, and `kanban` commands a
 hermes profile --help
 hermes cron --help
 hermes kanban --help
+hermes skills search --help
+hermes computer-use --help   # optional on macOS
 ```
 
 ---
 
 ## Install Oh My Hermes
 
-**One-line:**
-
 ```bash
-curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
+git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes
+bash /tmp/oh-my-hermes/install.sh
 ```
 
-**Clone and install:**
-
-```bash
-git clone https://github.com/salomondiei08/oh-my-hermes
-cd oh-my-hermes
-bash install.sh
-```
-
-The installer copies `skills/` to `~/.hermes/skills/` and `workflows/` to `~/.hermes/workflows/`. It is idempotent — running again updates existing files.
+The installer copies repo files into `~/.hermes/`. It must run from a full
+checkout because the skills, workflows, agents, and integration setup script are
+separate files. It is idempotent — running again updates existing files.
 
 ---
 
@@ -50,10 +45,10 @@ Expected output:
 ```
 [OK] Hermes found
 [OK] Skills directory: ~/.hermes/skills/
-[OK] 23 skills installed
+[OK] 36 skills installed
 [OK] Workflows directory: ~/.hermes/workflows/
-[OK] 5 workflows installed
-[OK] 6 agents installed
+[OK] 6 workflows installed
+[OK] 7 agents installed
 Next: cd into your project and run the bootstrap script.
 ```
 
@@ -134,9 +129,8 @@ Project `AGENTS.md` and `.env.local` are never modified by the installer.
 ## Uninstalling
 
 ```bash
-rm ~/.hermes/skills/clarify-requirements.md
-rm ~/.hermes/skills/product-brief.md
-# ... remove individual skill files
+bash scripts/uninstall.sh
 ```
 
-No dedicated uninstall command — skills are just files.
+The uninstaller removes Oh My Hermes skills, workflows, role files, and profiles.
+Hermes itself, memory, gateway configuration, and cron records remain untouched.

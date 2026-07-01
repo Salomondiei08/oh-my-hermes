@@ -1,100 +1,68 @@
 # Workflows
 
-## What workflows are
+Workflows chain skills into outcomes. Hermes owns orchestration; these documents
+do not introduce another runtime or state database.
 
-Workflows are composite documents that chain multiple skills together for a complete lifecycle outcome. They are not code — they are structured instructions that Hermes follows to coordinate a multi-step outcome. Each workflow references skills by name. Hermes loads them in order.
+## CTO Loop
 
----
+The canonical lifecycle:
 
-## Available workflows
-
-### idea-to-deploy
-
-The full journey from an idea to a running deployed app.
-
+```text
+Understand -> Design -> Build -> Check -> Ship -> Learn
 ```
-clarify-requirements     → stores answers in Hermes memory
-product-brief            → generates brief from clarified requirements
-[human] Claude Design    → UI/UX work (human step)
-design-handoff           → converts design output to implementation spec
-choose-engine            → routes to Claude Code or Codex
-implement                → coding engine executes spec
-deploy-to-vercel         → deploys, captures preview URL
-connect-supabase         → wires database, runs migrations (if needed)
-send-notification        → Slack notification with deployment URL
-post-deploy-followup     → verifies health, logs deployment to memory
-```
+
+- Product writes the brief and priorities.
+- Designer defines and verifies the user experience.
+- Builder delivers a working increment.
+- Security and Reviewer independently check it.
+- Founder approves irreversible release and publication choices.
+- Ops deploys, observes health/logs, and reports incidents.
+- Product turns runtime, customer, and growth evidence into the next outcome.
 
 Invoke:
-```
-tell hermes: start a new app
-```
 
----
-
-### design-to-code
-
-When requirements are clear but you want UI/UX design before coding.
-
-```
-[human] Claude Design    → UI/UX work
-design-handoff           → design → implementation spec
-choose-engine            → route to coding engine
-implement                → execute spec
+```text
+Set up the CTO product loop. Use defaults and only ask me questions that
+materially change the result.
 ```
 
-Invoke:
-```
-tell hermes: I have done design work. Convert it to code.
-```
+## Idea To Deploy
 
----
-
-### deploy-and-monitor
-
-For deploying an existing codebase and setting up monitoring.
-
-```
-deploy-to-vercel         → deploys, captures URL
-connect-supabase         → (if needed)
-setup-monitoring         → configures Uptime Kuma + Sentry
-send-notification        → Slack notification
-post-deploy-followup     → health check, memory log
+```text
+clarify-requirements (only if needed)
+-> product-brief
+-> design-handoff (user-facing work)
+-> choose-engine + implement
+-> security-review + Reviewer
+-> founder approval
+-> deploy-to-vercel
+-> post-deploy-followup + observe-logs
 ```
 
-Invoke:
-```
-tell hermes: deploy this app and set up monitoring
-```
+## Design To Code
 
----
+Designer reads the product and existing interface, writes `DESIGN.md`, hands
+testable behavior to Builder, then inspects mobile and desktop renders. External
+design notes may be supplied but are not required.
 
-## Running individual skills
+## Deploy And Monitor
 
-You do not need a full workflow every time:
+Deploy, connect required services, configure monitoring, run the health check,
+then observe the first log window. Availability and logs remain separate signals.
 
-```
-tell hermes: run health-check on https://myapp.vercel.app
-tell hermes: send a deployment notification to Slack
-tell hermes: generate a product brief from our requirements
-```
+## GitHub Ops
 
----
+GitHub issues and PRs carry task context, diffs, CI, reviews, and release
+approval. They support the product loop; they do not replace product strategy.
 
-## Resuming a workflow
+## Question Policy
 
-Hermes saves progress to memory. If a session ends mid-workflow:
+Every workflow reads existing context first, asks at most three questions in one
+message, gives recommended defaults, and continues when the user skips them.
+Only irreversible, paid, credentialed, licensed, destructive, or public actions
+must stop for approval.
 
-```
-tell hermes: we were running idea-to-deploy.
-We completed clarify-requirements and product-brief.
-Continue from design-handoff.
-```
+## Resuming
 
-Hermes loads prior session memory and continues. No workflow state is lost between sessions.
-
----
-
-## Custom workflows
-
-Create workflow documents in `~/.hermes/workflows/`. Follow the structure of the included workflows. Reference skills by their `name` field from the skill frontmatter.
+Resume from the current kanban task, `PRODUCT_BRIEF.md`, `DESIGN.md`, completion
+evidence, and Hermes memory. Do not repeat a completed interview.
