@@ -1,50 +1,56 @@
 ---
 name: clarify-requirements
-description: Use when a new project or significant feature starts and requirements are vague, unwritten, or only described in one sentence
-version: 1.0.0
-tags: [requirements, planning, memory]
+description: Use when a new project or significant feature has enough ambiguity to risk building the wrong outcome
+version: 2.0.0
+tags: [requirements, planning, assumptions, product]
 ---
 
 ## Overview
 
-Structured 7-question intake. Saves answers to Hermes memory so every downstream skill has shared context.
+Creates buildable requirements with minimal interruption. It reads available
+evidence first, asks at most three high-value questions, and continues with
+recommended assumptions when the user skips them.
 
 ## When to Use
 
-- New project with no written requirements
-- New major feature where scope is unclear
-- User said "build me X" without specifying users, constraints, or success criteria
+- A new product or major feature begins.
+- Audience, outcome, scope, or constraints are materially unclear.
+- Different reasonable assumptions would produce different products.
 
-Do NOT use for bug fixes, small changes, or when requirements are already documented.
+Do not use for small fixes or choices already documented in the project.
 
 ## Prerequisites
 
-None. Run before anything else.
+- Access to the current project, conversation, and Hermes memory.
 
 ## Procedure
 
-Ask these 7 questions. Wait for all answers before saving.
-
-1. What problem does this solve? Who experiences it and how often?
-2. Who are the primary users? Be specific ("solo founders building SaaS" not "developers").
-3. What are the 3 most important features for V1? Priority order.
-4. What is explicitly out of scope for this version?
-5. What is the preferred tech stack, or are there constraints?
-6. Hard constraints: deadline, budget, must-integrate-with systems, compliance?
-7. What does success look like 30 days after launch?
-
-After all 7 answers:
-- Save to Hermes memory: key `requirements-[project-name]`
-- Format as structured Q&A
-- Confirm to user, offer to run `product-brief`
+1. Read README, AGENTS.md, existing briefs, issues, product UI, and relevant
+   memory before asking anything.
+2. Draft inferred answers for: problem, audience, desired outcome, V1 scope,
+   constraints, non-goals, and success signal.
+3. Identify only unknowns that materially change architecture, user experience,
+   cost, legal risk, or scope.
+4. If needed, ask at most three short questions in one message. For each, give a
+   recommended default. End with: "Skip any question and I will continue with
+   these defaults."
+5. If the user answers partially, use those answers and default the rest. If the
+   user does not answer, continue with all recommended defaults.
+6. Save structured requirements and assumptions to Hermes memory under
+   `requirements-[project-name]`.
+7. Continue directly to `product-brief` unless an irreversible or credentialed
+   decision is genuinely blocking.
 
 ## Pitfalls
 
-- Do not start implementing during clarification. Redirect: "Let's finish requirements first."
-- Do not save partial answers. Wait for all 7.
-- If user cannot answer a question, save as `[OPEN QUESTION: ...]` — do not skip.
-- Do not ask more than 7 questions.
+- Do not conduct a fixed questionnaire.
+- Do not ask for preferences that a reviewable prototype can resolve.
+- Do not repeat questions answered in the repository or conversation.
+- Do not hide assumptions; make them easy to correct later.
 
 ## Verification
 
-Recall `requirements-[project-name]` from Hermes memory. All 7 answers present. Open questions marked.
+- Requirements identify audience, outcome, V1 scope, acceptance criteria, and
+  assumptions.
+- No more than three questions were asked in one message.
+- Unanswered optional questions did not block progress.

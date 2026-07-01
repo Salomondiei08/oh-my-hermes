@@ -1,47 +1,51 @@
 ---
 name: product-brief
-description: Use when requirements are saved to Hermes memory and a written artifact is needed before implementation or design begins
-version: 1.0.0
-tags: [planning, brief, memory]
+description: Use when a product idea or feature needs a compact source of truth before design and implementation
+version: 2.0.0
+tags: [product, brief, scope, acceptance-criteria]
 ---
 
 ## Overview
 
-Transforms raw requirements from Hermes memory into a structured product brief. Writes PRODUCT_BRIEF.md as a shareable artifact.
+Writes the smallest brief that keeps Product, Designer, Builder, Reviewer, and
+Security aligned. The brief records assumptions instead of waiting for perfect
+information.
 
 ## When to Use
 
-- After `clarify-requirements` has completed
-- Memory contains `requirements-[project-name]`
-- Need a document to share with collaborators or hand off to a coding engine
+- Starting a new product or meaningful increment.
+- Existing requirements are scattered across chat, memory, issues, or docs.
+- Design and implementation need shared acceptance criteria.
 
 ## Prerequisites
 
-- Hermes memory contains `requirements-[project-name]`
+- Requirements from project evidence, conversation, or `clarify-requirements`.
 
 ## Procedure
 
-1. Retrieve `requirements-[project-name]` from Hermes memory
-2. Generate a product brief with these sections:
-   - **Problem Statement** — one paragraph: problem, who, how often
-   - **Target Users** — specific description
-   - **Core Features (V1)** — max 5, numbered, priority order, one-sentence each
-   - **Out of Scope (V1)** — explicit exclusions
-   - **Tech Stack** — each layer with chosen tool and one-sentence rationale
-   - **Success Criteria** — measurable outcomes at 30 days
-   - **Open Questions** — anything marked [OPEN QUESTION] in requirements
-3. Save to Hermes memory: key `product-brief-[project-name]`
-4. Write to `PRODUCT_BRIEF.md` in current directory
-5. Offer to continue to `design-handoff` or `choose-engine`
+1. Gather the best available requirements and assumptions.
+2. Write `PRODUCT_BRIEF.md` with:
+   - **Problem and Audience**
+   - **Desired User Outcome**
+   - **V1 Scope** (maximum five items)
+   - **Primary Journey**
+   - **Acceptance Criteria** (2-5 observable checks)
+   - **Non-Goals**
+   - **Constraints and Assumptions**
+   - **Success Signal**
+3. Mark each unresolved item as an assumption with the recommended default.
+4. Save a compact copy to memory as `product-brief-[project-name]`.
+5. Route UI or creative work to Designer; otherwise route the brief to Builder.
 
 ## Pitfalls
 
-- Do not invent requirements not in memory. Mark anything unclear as open question.
-- Do not list more than 5 core features. Prioritize ruthlessly.
-- Tech stack entries must be specific: "Supabase PostgreSQL — built-in RLS and auth" not "a database."
+- Do not turn the brief into a roadmap, architecture document, or feature dump.
+- Do not invent evidence or treat an assumption as a confirmed fact.
+- Do not block design or building on an optional open preference.
+- Do not exceed five V1 scope items.
 
 ## Verification
 
-- `PRODUCT_BRIEF.md` exists in current directory
-- Brief retrievable from Hermes memory as `product-brief-[project-name]`
-- All [OPEN QUESTION] items from requirements appear in Open Questions section
+- `PRODUCT_BRIEF.md` exists and remains concise.
+- Each acceptance criterion is externally observable or mechanically testable.
+- Assumptions are explicit and downstream ownership is clear.

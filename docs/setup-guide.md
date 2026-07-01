@@ -9,13 +9,13 @@ Everything you need before the CTO loop runs autonomously.
 | Requirement | Why |
 |---|---|
 | A VPS or always-on machine | Hermes must run 24/7 for cron and monitoring |
-| Hermes Agent v0.9+ | The runtime |
+| Hermes Agent v0.16+ | Profiles, Kanban, skill search, cron, and Computer Use |
 | A model provider (Anthropic, OpenAI, OpenRouter…) | Hermes needs an LLM |
 | A messaging platform (Telegram recommended) | How you receive approval requests |
-| GitHub account + repo | Where your project lives |
-| GitHub CLI (`gh`) | How Hermes manages issues and PRs |
-| Vercel account + CLI | For deployment |
-| Node.js 18+ | For Vercel and Supabase CLIs |
+| GitHub account + repo | Optional delivery surface for issues and PRs |
+| GitHub CLI (`gh`) | Optional GitHub automation |
+| Vercel account + CLI | Needed when deploying to Vercel |
+| Node.js 22+ | For current CLIs and optional HyperFrames production |
 
 ---
 
@@ -36,7 +36,7 @@ sudo apt install -y git curl unzip
 ```bash
 curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash
 source ~/.bashrc
-hermes --version   # should print v0.9+
+hermes --version   # should print v0.16+
 ```
 
 Configure a model provider:
@@ -48,6 +48,18 @@ Test it works:
 ```bash
 hermes chat -q "say hello"
 ```
+
+Recommended smooth build policy:
+
+```bash
+hermes config set approvals.mode smart
+hermes config set terminal.sudo_password ''
+```
+
+Smart mode auto-handles low-risk commands while escalating real risk. The empty
+sudo value suppresses password dialogs; agents must use project-local,
+user-level, package-manager, or container paths instead. Do not disable approval
+checks on the host.
 
 ---
 
@@ -108,13 +120,17 @@ supabase login
 
 ```bash
 git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes
+<<<<<<< HEAD
 cd /tmp/oh-my-hermes
 bash install.sh
+=======
+bash /tmp/oh-my-hermes/install.sh
+>>>>>>> origin/product-loop-integrations-cleanup
 ```
 
 Verify:
 ```bash
-bash ~/.hermes/verify.sh    # or the path where you cloned the repo
+bash /tmp/oh-my-hermes/scripts/verify.sh
 ```
 
 All items should show [OK].
@@ -133,14 +149,43 @@ export PRODUCTION_URL=https://yourapp.vercel.app   # optional but recommended
 OH_MY_HERMES_SETUP_CTO_CONFIRM=1 bash /path/to/oh-my-hermes/scripts/setup-cto.sh
 ```
 
+Optional integrations are configured only when first needed. Do not paste keys
+into chat:
+
+```bash
+bash ~/.hermes/scripts/setup-integrations.sh --check
+bash ~/.hermes/scripts/setup-integrations.sh --buffer
+bash ~/.hermes/scripts/setup-integrations.sh --seedance
+bash ~/.hermes/scripts/setup-integrations.sh --openai
+```
+
+Buffer is requested at the first approved social scheduling action. Seedance is
+requested at the first approved paid video generation. OpenAI is requested only
+when selected as the Hermes model or creative provider.
+
+For a fresh VPS, use the installed server bootstrap after installing Oh My
+Hermes:
+
+```bash
+bash ~/.hermes/scripts/server-bootstrap.sh --project myapp --repo owner/repo --telegram
+bash ~/.hermes/scripts/status.sh
+```
+
+To replace stale runtime state before a new Telegram agent:
+
+```bash
+bash ~/.hermes/scripts/reset-runtime.sh --yes
+```
+
 The script:
-- Creates Hermes profiles: `cto`, `pm`, `dev`, `qa`, `ops`, `security`
+- Creates Hermes profiles: `cto`, `pm`, `designer`, `dev`, `qa`, `security`, `ops`
 - Injects each agent's role definition into its profile
 - Initializes the kanban board
 - Authenticates `gh` CLI using your token (no browser needed)
 - Warns if a gateway is already running (do not start duplicate gateways with the same bot token)
 - Saves your repo and username to Hermes memory
-- Sets up four cron jobs: hourly issue triage, 15-min health check, 9am daily report, weekly security assessment
+- Creates missing named cron jobs for product review, health, logs, daily report,
+  daily security, and weekly security based on available repo/production context
 
 Safe to re-run — it is idempotent.
 
@@ -169,7 +214,7 @@ Required minimum:
 ```bash
 # In your .env.local
 
-# GitHub — required for all CTO loop skills (issues, PRs, kanban)
+# GitHub — optional for issue and PR delivery
 # Create at: github.com → Settings → Developer settings → Personal access tokens → Fine-grained
 # Permissions needed: Contents (R/W), Issues (R/W), Pull requests (R/W), Metadata (R)
 GITHUB_TOKEN=your-fine-grained-token
@@ -198,26 +243,23 @@ Set up the CTO loop for [owner/repo].
 Send approvals to me on Telegram.
 ```
 
-Hermes will:
-1. Save your repo and approval platform to memory
-2. Set up four cron jobs:
-   - Hourly issue triage
-   - 15-minute production health check
-   - 9am daily status report
-   - 9am Monday security assessment
-3. Confirm and show you the kanban board
+Hermes will inspect the project, infer available settings, ask at most three
+optional questions with recommended defaults, create the seven profiles, save
+available context, create missing named cron jobs, and show the kanban board.
 
 ---
 
 ## What happens next (no action needed from you)
 
-- Every hour: Hermes checks GitHub for new issues, scores them, picks the top one
-- When an issue is picked: Dev Agent implements it, creates a PR, QA Agent reviews it
-- Before approval: Security Agent reviews the PR and blocks critical or high findings
-- When QA passes: you get a Telegram/Slack message with a plain-English summary and a YES/NO prompt
-- You reply YES → it merges, deploys, health checks, and confirms back to you
-- You reply NO → tell it what to change, it iterates
-- Every Monday: Security Agent runs a supply chain assessment and sends a summary
+- CTO keeps one product outcome active across Understand, Design, Build, Check,
+  Ship, and Learn
+- Product turns ideas, feedback, analytics, and issues into compact build briefs
+- Designer defines and verifies user-facing work
+- Builder implements the smallest complete increment
+- Security and Reviewer independently check risk and behavior
+- You choose YES, NO, CLOSE, or LATER at release
+- Ops deploys, checks health, deduplicates logs, and reports actionable incidents
+- Daily and weekly security jobs run when a repository is configured
 
 ---
 

@@ -1,68 +1,44 @@
-# Workflow: Idea to Deploy
+---
+name: idea-to-deploy
+description: Move a product idea from minimal clarification through design, a working build, independent checks, deployment, and initial learning
+version: 2.0.0
+tags: [product, design, build, deploy, learn]
+---
 
-Full lifecycle from a raw idea to a running, deployed, monitored app.
+## Overview
 
-## Invoke
-
-```
-tell hermes: start a new app
-tell hermes: run the idea-to-deploy workflow
-```
+Build a reviewable first version quickly while preserving the few human choices
+that matter.
 
 ## Steps
 
-### 1. clarify-requirements
-Ask 7 structured questions. Save answers to Hermes memory.
-Do not proceed until all 7 are answered.
+1. **Understand:** inspect context, run `clarify-requirements` only for material
+   unknowns, then write `PRODUCT_BRIEF.md` with `product-brief`.
+2. **Design:** for user-facing work, Designer runs `design-handoff` and writes
+   `DESIGN.md`. Continue with its recommended reversible direction if skipped.
+3. **Build:** choose an engine and implement the smallest complete V1 increment.
+4. **Check:** run Security for relevant risk and Reviewer against the actual
+   acceptance criteria and rendered product.
+5. **Preview:** deploy a preview and resolve failed behavior or checks.
+6. **Approve:** founder chooses YES, NO, CLOSE, or LATER.
+7. **Ship:** Ops deploys, runs `post-deploy-followup`, and observes initial logs.
+8. **Learn:** Product records initial user/runtime evidence and recommends the
+   next smallest outcome. Growth work is optional, not a release requirement.
 
-### 2. product-brief
-Generate product brief from requirements. Save to memory and PRODUCT_BRIEF.md.
-If there are open questions, resolve them before continuing.
+## Question Rule
 
-### 3. Design (human step)
-Open claude.ai/design. Describe what you are building.
-Export design decisions to `design-output.md` in the project root.
-This step is optional — skip if the project is purely backend.
+Ask no more than three questions in one message, provide defaults, and continue
+when the user skips them. Stop only at irreversible or credentialed boundaries.
 
-### 4. design-handoff (if design step was done)
-Convert design-output.md to IMPLEMENTATION_SPEC.md.
-Save spec to Hermes memory.
+## Resume
 
-### 5. choose-engine
-Route to Claude Code or Codex based on task complexity.
-For a new app from scratch: almost always Claude Code.
+Use the current kanban task, `PRODUCT_BRIEF.md`, `DESIGN.md`, implementation
+evidence, and memory to resume at the first incomplete stage. Do not repeat the
+intake interview.
 
-### 6. implement-with-claude-code or implement-with-codex
-Pass full context (brief + spec + architecture decisions) to the coding engine.
-Wait for implementation to complete.
+## Verification
 
-### 7. deploy-to-vercel
-Run pre-deploy checklist. Deploy. Capture URL.
-
-### 8. connect-supabase (if database is needed)
-Link Supabase project. Push migrations. Add env vars to Vercel.
-
-### 9. send-notification
-Send Slack notification with deployment URL.
-
-### 10. setup-monitoring (first deploy only)
-Configure Sentry. Document Uptime Kuma setup.
-
-### 11. post-deploy-followup
-Health check. Log deployment. Confirm monitoring.
-
-## Resuming
-
-If the session ends mid-workflow:
-```
-tell hermes: we were running idea-to-deploy for [project].
-We completed [last step]. Continue from [next step].
-```
-
-Hermes loads prior memory and continues.
-
-## Variations
-
-**Backend-only project (no UI):** Skip steps 3 and 4.
-**Existing codebase (no new requirements):** Start at step 5.
-**Re-deploy after a change:** Start at step 5, skip to step 7 after implementation.
+- V1 acceptance criteria pass in a running environment.
+- Required Security and Reviewer evidence exists.
+- Founder approved the reviewed release commit.
+- Production health and initial log observation pass.
