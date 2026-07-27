@@ -254,11 +254,11 @@ fi
 
 [ -z "${GITHUB_USERNAME:-}" ] && \
   warn "GITHUB_USERNAME not set — auto-issue-triage cannot self-assign issues. Add: export GITHUB_USERNAME=your-username" || \
-  ok "GITHUB_USERNAME: $GITHUB_USERNAME"
+  ok "GITHUB_USERNAME: ${GITHUB_USERNAME}"
 
 [ -z "${GITHUB_REPO:-}" ] && \
   warn "GITHUB_REPO not set — CTO loop has no repo to manage. Add: export GITHUB_REPO=owner/repo" || \
-  ok "GITHUB_REPO: $GITHUB_REPO"
+  ok "GITHUB_REPO: ${GITHUB_REPO}"
 
 # ── 6. Gateway / bot token safety ────────────────
 step "6. Gateway safety check"
@@ -355,31 +355,25 @@ ensure_cron() {
   return 0
 }
 
-if [ -n "$PRODUCTION_URL" ]; then
+if [ -n "${PRODUCTION_URL:-}" ]; then
   ensure_cron "oh-my-hermes-health" "*/15 * * * *" \
-    "Use failure-recovery for project ${PROJECT_SLUG:-default}: run health-check on $PRODUCTION_URL and save a dead letter if the check fails."
+    "Use failure-recovery for project ${PROJECT_SLUG:-default}: run health-check on ${PRODUCTION_URL} and save a dead letter if the check fails."
   ensure_cron "oh-my-hermes-log-observer" "15 * * * *" \
-    "Use failure-recovery for project ${PROJECT_SLUG:-default}: run observe-logs for $PRODUCTION_URL. Deduplicate known events and notify only on new actionable High or Critical groups."
+    "Use failure-recovery for project ${PROJECT_SLUG:-default}: run observe-logs for ${PRODUCTION_URL}. Deduplicate known events and notify only on new actionable High or Critical groups."
 else
   warn "PRODUCTION_URL not set — skipping health check cron"
   echo "         Set it and re-run, or add manually after deploy:"
   echo "         hermes cron create --name 'oh-my-hermes health-check' --deliver local '*/15 * * * *' 'Run health-check on https://yourapp.vercel.app'"
 fi
 
-if [ -n "$GITHUB_REPO" ]; then
-  ensure_cron "oh-my-hermes-product-review" "0 * * * *"     "Use failure-recovery for project ${PROJECT_SLUG:-default}: review active product work and actionable GitHub issues for $GITHUB_REPO. Keep one product outcome active and do not treat issue volume as the roadmap."
-else
-  warn "GITHUB_REPO not set — skipping product and issue review cron"
-fi
-
-  ensure_cron "oh-my-hermes-product-review" "0 * * * *"     "Use failure-recovery for project ${PROJECT_SLUG:-default}: review active product work and actionable GitHub issues for $GITHUB_REPO. Keep one product outcome active and do not treat issue volume as the roadmap."
+if [ -n "${GITHUB_REPO:-}" ]; then
+  ensure_cron "oh-my-hermes-product-review" "0 * * * *"     "Use failure-recovery for project ${PROJECT_SLUG:-default}: review active product work and actionable GitHub issues for ${GITHUB_REPO}. Keep one product outcome active and do not treat issue volume as the roadmap."
   ensure_cron "oh-my-hermes-security-daily" "30 8 * * *" \
-    "Use failure-recovery for project ${PROJECT_SLUG:-default}: run security-review daily mode for $GITHUB_REPO: check tracked secret exposure and new Critical dependency advisories. Deduplicate known findings."
+    "Use failure-recovery for project ${PROJECT_SLUG:-default}: run security-review daily mode for ${GITHUB_REPO}: check tracked secret exposure and new Critical dependency advisories. Deduplicate known findings."
   ensure_cron "oh-my-hermes-security-weekly" "0 9 * * 1" \
-    "Use failure-recovery for project ${PROJECT_SLUG:-default}: run security-review weekly mode for $GITHUB_REPO: full dependency, configuration, and supply-chain assessment."
->>>>>>> 9e3e68f (feat: add first-run server operating layer)
+    "Use failure-recovery for project ${PROJECT_SLUG:-default}: run security-review weekly mode for ${GITHUB_REPO}: full dependency, configuration, and supply-chain assessment."
 else
-  warn "GITHUB_REPO not set — skipping scheduled security assessments"
+  warn "GITHUB_REPO not set — skipping product, issue, and security assessment crons"
 fi
 
 # ── Summary ───────────────────────────────────────
@@ -406,8 +400,8 @@ else
   echo "  hermes kanban watch       # open live kanban board"
   echo ""
   echo "Then lock persistent focus (Hermes v0.13+):"
-  if [ -n "$GITHUB_REPO" ]; then
-    echo "  /goal Build, launch, operate, and improve the product in $GITHUB_REPO."
+  if [ -n "${GITHUB_REPO:-}" ]; then
+    echo "  /goal Build, launch, operate, and improve the product in ${GITHUB_REPO}."
     echo "        Keep one outcome active, verify it, and ask only at irreversible boundaries."
   else
     echo "  /goal Build, launch, operate, and improve this product. Keep one outcome"
