@@ -472,7 +472,7 @@ Multi-service orchestration, more example apps, hosted setup wizard.
 
 ## Star history
 
-[![Star History Chart](https://api.star-history.com/svg?repos=salomondiei08/oh-my-hermes&type=Date)](https://star-history.com/#salomondiei08/oh-my-hermes&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=salomondiei08/oh-my-hermes&type=Date)](https://star-history.dera.page/#salomondiei08/oh-my-hermes&Date)
 
 ---
 
