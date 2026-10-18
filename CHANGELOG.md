@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.2.0 - 2026-10-18
+
+- Install discoverable skill directories with ownership-aware updates/uninstall;
+  add real format validation, isolated installation checks, and behavioral tests.
+- Validate project metadata without shell evaluation, reconcile scoped cron jobs,
+  preserve profile identity, and fail safely on incomplete setup or reset.
+- Add private SQLite-safe snapshots and metadata-only dead letters.
+- Separate preview/production procedures, bind release approval to commits, scope
+  memory records, preserve known-good rollback targets, and bound engine handoffs.
+- Repair the separate website's content, fonts, light/dark themes, accessibility,
+  dependency versions and browser verification.
+
 ## 2.1.0 - 2026-07-28
 
 ### Hermes v0.19 compatibility + new automation-blueprint skill

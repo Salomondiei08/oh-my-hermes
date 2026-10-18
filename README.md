@@ -8,7 +8,7 @@
 [![Skills](https://img.shields.io/badge/skills-39-brightgreen?style=flat-square)](#skills)
 [![Agents](https://img.shields.io/badge/agents-7-blue?style=flat-square)](#agents)
 
-**The production harness for Hermes Agent. 39 skills, 7 agents, 6 workflows — installed in one command.**
+**A workflow pack for Hermes Agent: 39 skills, 7 role definitions, and 6 workflows.**
 
 Like Oh My Zsh is to Zsh. Hermes has the primitives: memory, kanban, cron, profiles, subagents. Oh My Hermes wires them into a real product-building loop — from idea through design, build, review, deploy, and monitoring — with you in control of the irreversible decisions.
 
@@ -17,8 +17,9 @@ Like Oh My Zsh is to Zsh. Hermes has the primitives: memory, kanban, cron, profi
 ## Install
 
 ```bash
-git clone https://github.com/salomondiei08/oh-my-hermes /tmp/omh
-bash /tmp/omh/install.sh
+git clone https://github.com/salomondiei08/oh-my-hermes.git
+cd oh-my-hermes
+bash install.sh
 ```
 
 Then tell your Hermes bot:
@@ -27,7 +28,9 @@ Then tell your Hermes bot:
 set up the CTO loop
 ```
 
-Hermes reads the project, asks at most three questions with defaults, and starts the loop.
+Hermes reads the project and asks at most three material questions. Configure and verify each profile’s model access and messaging before enabling unattended operation.
+
+The installer requires Python 3.9+. Skill validation requires Ruby with its standard-library YAML parser. Re-running install updates unchanged owned files and preserves custom files; review `[PRESERVED]` messages. See [installation](docs/installation.md) for verification and upgrade checks.
 
 ---
 
@@ -37,7 +40,9 @@ Paste this into Claude, Cursor, Copilot, or any coding assistant:
 
 ```
 Install Oh My Hermes by running:
-git clone https://github.com/salomondiei08/oh-my-hermes /tmp/omh && bash /tmp/omh/install.sh
+git clone https://github.com/salomondiei08/oh-my-hermes.git
+cd oh-my-hermes
+bash install.sh
 
 Then read the full installation guide at:
 https://github.com/salomondiei08/oh-my-hermes/blob/main/INSTALL_FOR_AGENTS.md
@@ -128,7 +133,7 @@ Hermes runs on your VPS or laptop. You interact from your phone via Telegram, Sl
 | `observe-logs` | Deduplicates runtime errors, escalates only actionable changes |
 | `send-notification` | Gateway-first founder messaging with durable delivery (v0.19+) |
 | `cto-status-report` | Daily morning report: shipped, in progress, blocked |
-| `backup-hermes-data` | Tarballs `~/.hermes/` to S3, Dropbox, or local |
+| `backup-hermes-data` | Creates private SQLite-safe snapshots and rehearses isolated recovery |
 | `failure-recovery` | Saves failed cron/agent context to dead-letter logs and alerts |
 | `reset-runtime` | Backs up and clears stale Hermes state without deleting credentials |
 | `server-bootstrap` | Sets up a fresh VPS with Hermes, Telegram, and the CTO loop |
@@ -217,7 +222,7 @@ hermes: Health check: PASS (200ms). Notification sent.
 you: fix the auth redirect bug in src/middleware.ts
 hermes: Routing to Codex (single-file fix)…
 hermes: Done. Typecheck passes. PR created.
-hermes: Preview healthy. Reply YES to ship, NO with feedback, CLOSE, or LATER.
+hermes: Preview healthy. Reply YES for this reviewed commit to ship, NO with feedback, CLOSE, or LATER.
 ```
 
 **Stacked skills (v0.19+):**
@@ -239,8 +244,9 @@ hermes setup     # full configuration wizard (v0.19+)
 hermes gateway setup && hermes gateway start   # connect Telegram or Slack
 
 # Install Oh My Hermes
-git clone https://github.com/salomondiei08/oh-my-hermes /tmp/omh
-bash /tmp/omh/install.sh
+git clone https://github.com/salomondiei08/oh-my-hermes.git
+cd oh-my-hermes
+bash install.sh
 
 # Message your bot: "set up the CTO loop"
 ```
@@ -278,11 +284,12 @@ If you use Bitwarden or 1Password, run `hermes secrets` to plug your vault in di
 | `scripts/server-bootstrap.sh` | Fresh VPS setup: Hermes + Oh My Hermes + Telegram |
 | `scripts/project.sh` | Switches current product context |
 | `scripts/status.sh` | Prints founder-readable project and integration status |
-| `scripts/run-cron-safe.sh` | Wraps cron jobs with dead-letter logging on failure |
+| `scripts/run-cron-safe.sh` | Records private failure metadata without persisting arguments or tool output |
+| `scripts/backup-runtime.py` | Creates a private archive with integrity-checked SQLite snapshots |
 | `scripts/reset-runtime.sh` | Backs up and clears stale sessions and state |
 | `scripts/ship-this-idea.sh` | Starts the full flagship build flow from one sentence |
-| `scripts/verify.sh` | Checks everything is installed correctly |
-| `scripts/uninstall.sh` | Removes all Oh My Hermes files from `~/.hermes/` |
+| `scripts/verify.sh` | Checks installed paths; `--setup` checks profile/runtime prerequisites |
+| `scripts/uninstall.sh` | Removes unchanged manifest-owned files; preserves profiles and custom files |
 
 ---
 
@@ -290,7 +297,7 @@ If you use Bitwarden or 1Password, run `hermes secrets` to plug your vault in di
 
 ```
 oh-my-hermes/
-├── skills/          ← 39 skill files → ~/.hermes/skills/
+├── skills/          ← 39 sources → ~/.hermes/skills/oh-my-hermes/<name>/SKILL.md
 ├── workflows/       ← 6 workflow files → ~/.hermes/workflows/
 ├── agents/          ← 7 agent role definitions → ~/.hermes/agents/
 ├── templates/       ← AGENTS.md template, .env example, health endpoint

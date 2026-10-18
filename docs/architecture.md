@@ -72,7 +72,38 @@ independently check relevant changes. Ops pairs active health checks with
 deduplicated log observation. Two materially similar failed attempts block the
 task and request a decision instead of continuing busywork.
 
+## Installed state and profiles
+
+Source skills remain `skills/<name>.md`; installation expands each to
+`$HERMES_HOME/skills/oh-my-hermes/<name>/SKILL.md`. The ownership manifest hashes
+only distributed files, never profile state. Customized files survive updates
+and uninstall. Legacy flat skills require manual review.
+
+Setup appends a managed role block to each profile's loaded `SOUL.md` and links
+its owned OMH catalog. Existing identity is retained. Credentials are not cloned;
+configure and verify each profile before relying on model calls or message delivery.
+
+Project metadata is validated `.env`-shaped data. Read it only with
+`project.sh get GITHUB_REPO <slug>` / `get PRODUCTION_URL <slug>`; never source it.
+Named jobs use `oh-my-hermes-<slug>-<purpose>` and an explicit project workdir.
+Setup edits existing scoped jobs, resumes desired jobs, and pauses jobs whose target
+was explicitly cleared. Legacy unscoped jobs are preserved for manual review.
+Daily delivery defaults to local; use `OMH_NOTIFICATION_TARGET` for an explicit
+configured Hermes destination and verify receipt.
+
+Failure wrappers retain only job/project/time/exit metadata. Arguments and tool
+output are intentionally discarded; inspect failures locally and send a reviewed
+summary through the notification skill. Snapshots include private configuration,
+use SQLite online backups, and preserve executable bits. Close all runtime writers
+before cross-file backup/reset; reset refuses unknown gateway state or open files.
+The `lsof` prerequisite checks open runtime files; it cannot prevent a new process
+starting afterward. Never start another session during reset.
+
 ## Memory Keys
+
+All product state uses `project:<slug>:<key>`; the table lists key suffixes.
+Resolve the slug at the start of a task and retain it for the task's duration.
+Do not fall back to unscoped state from a different product.
 
 | Key | Owner | Purpose |
 |---|---|---|
@@ -81,9 +112,9 @@ task and request a decision instead of continuing busywork.
 | `current-task` | Product/CTO | Single active outcome |
 | `task-id-issue-[n]` | GitHub skills | Issue-to-kanban mapping |
 | `triage-last-run` | issue triage | Cost guard |
-| `product-brief-[project]` | Product | Compact product context |
+| `product-brief` | Product | Compact product context |
 | `implementation-spec-[feature]` | Designer | Engineering handoff summary |
-| `last-deployment-url` | deploy skill | Current release target |
+| `deployment:<env>` | deploy/followup/rollback | Current and previous healthy immutable deployment IDs, URLs, commits and health |
 | `log-observer-state` | Ops | Cursor, fingerprints, and incident mapping |
 | `pending-approval` | CTO | Reviewed release awaiting founder choice |
 | `notification-log` | notification skill | Delivery history |
@@ -92,6 +123,12 @@ task and request a decision instead of continuing busywork.
 | `blueprint-run-[name]-[ts]` | automation-blueprint | Per-run step outputs and resume state |
 | `health-failure-log` | health-check | Per-layer failure history |
 | `ops-health-log` | health-check / Ops | 24-hour health window (read by cto-status-report) |
+
+`deployment:<env>` stores `{repository, project, environment, current:
+{id,url,commit,timestamp,healthStatus}, previousHealthy: {id,url,commit,timestamp,
+healthStatus:"healthy"}|null}`. Persist the new unknown-health deployment before
+followup. Preserve the previous known-good target on failure. Production approval
+records also bind repository, project, environment and exact reviewed commit.
 
 New persistent keys must be documented here to avoid silent cross-agent
 collisions.
