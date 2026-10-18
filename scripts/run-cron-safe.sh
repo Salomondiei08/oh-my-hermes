@@ -1,63 +1,41 @@
 #!/usr/bin/env bash
-# Run a cron command and save actionable failure context.
-
+# Failure metadata is durable; arbitrary tool output and arguments may contain secrets.
 set -euo pipefail
-
-export PATH="$HOME/.local/bin:$HOME/.hermes/hermes-agent/venv/bin:$PATH"
-
+umask 077
 HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
 PROJECT="default"
 NAME="cron"
-
-usage() {
-  echo "Usage: run-cron-safe.sh [--project slug] [--name job-name] -- command [args...]"
-}
-
+usage() { echo 'Usage: run-cron-safe.sh [--project slug] [--name job-name] -- command [args...]'; }
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --project) PROJECT="${2:-default}"; shift 2 ;;
-    --name) NAME="${2:-cron}"; shift 2 ;;
+    --project|--name)
+      [ "$#" -ge 2 ] || { usage >&2; exit 2; }
+      if [ "$1" = --project ]; then PROJECT="$2"; else NAME="$2"; fi
+      shift 2 ;;
     --) shift; break ;;
     -h|--help) usage; exit 0 ;;
-    *) break ;;
+    *) echo "[ERROR] Expected -- before command" >&2; exit 2 ;;
   esac
 done
-
-[ "$#" -gt 0 ] || { usage; exit 2; }
-
-timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
-dead_dir="$HERMES_HOME/oh-my-hermes/dead-letter/$PROJECT"
-mkdir -p "$dead_dir"
-log_file="$dead_dir/${timestamp}-${NAME}.log"
-redacted_command="$(printf '%s' "$*" | sed -E 's/(token|secret|password|api[_-]?key)=([^[:space:];]+)/\1=[REDACTED]/Ig')"
-
+[ "$#" -gt 0 ] || { usage >&2; exit 2; }
+for value in "$PROJECT" "$NAME"; do
+  case "$value" in ''|.*|*[!a-zA-Z0-9._-]*) echo '[ERROR] Invalid project/job name' >&2; exit 2 ;; esac
+done
 set +e
-"$@" >"$log_file.tmp" 2>&1
+"$@" >/dev/null 2>&1
 code=$?
 set -e
-
-if [ "$code" -eq 0 ]; then
-  rm -f "$log_file.tmp"
-  exit 0
-fi
-
+[ "$code" -ne 0 ] || exit 0
+dead_dir="$HERMES_HOME/oh-my-hermes/dead-letter/$PROJECT"
+mkdir -p "$dead_dir"
+log_file="$(mktemp "$dead_dir/$(date -u +%Y%m%dT%H%M%SZ)-$NAME.XXXXXX")"
+mv "$log_file" "$log_file.log"
+log_file="$log_file.log"
 {
-  echo "project=$PROJECT"
-  echo "job=$NAME"
-  echo "timestamp=$timestamp"
-  echo "exit_code=$code"
-  echo "command=$redacted_command"
-  echo ""
-  echo "--- output ---"
-  sed -E 's/(token|secret|password|api[_-]?key)=([^[:space:]]+)/\1=[REDACTED]/Ig' "$log_file.tmp"
+  printf 'project=%s\njob=%s\nexit_code=%s\n' "$PROJECT" "$NAME" "$code"
+  printf 'timestamp=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo 'Tool output and arguments omitted because they may contain credentials.'
+  echo 'Inspect the failed job locally; send only a reviewed summary through send-notification.'
 } > "$log_file"
-rm -f "$log_file.tmp"
-chmod 600 "$log_file"
-
-message="Oh My Hermes job failed: $NAME for $PROJECT. Dead letter: $log_file"
-if command -v hermes >/dev/null 2>&1; then
-  hermes send "$message" >/dev/null 2>&1 || true
-fi
-
-echo "$message" >&2
+echo "[ERROR] Job $NAME for $PROJECT failed ($code). Dead letter: $log_file" >&2
 exit "$code"

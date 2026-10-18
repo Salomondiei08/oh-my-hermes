@@ -1,92 +1,47 @@
 #!/usr/bin/env bash
-set -e
-
-HERMES_DIR="$HOME/.hermes"
-SKILLS_DIR="$HERMES_DIR/skills"
-WORKFLOWS_DIR="$HERMES_DIR/workflows"
-AGENTS_DIR="$HERMES_DIR/agents"
-SCRIPTS_DIR="$HERMES_DIR/scripts"
+set -euo pipefail
+HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-echo "Oh My Hermes — installer"
-echo "========================"
-
-# Check Hermes is installed
-if [ ! -d "$HERMES_DIR" ]; then
-  echo ""
-  echo "[ERROR] ~/.hermes not found. Install Hermes Agent first:"
-  echo "  curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash"
-  echo "  Then run: hermes"
-  exit 1
-fi
-
-if [ ! -d "$SCRIPT_DIR/skills" ] \
-  || [ ! -d "$SCRIPT_DIR/workflows" ] \
-  || [ ! -d "$SCRIPT_DIR/agents" ] \
-  || [ ! -d "$SCRIPT_DIR/scripts" ]; then
-  echo ""
-  echo "[ERROR] install.sh must be run from a full Oh My Hermes checkout."
-  echo "        This installer copies repo files; piping only install.sh is not enough."
-  echo ""
-  echo "        Run:"
-  echo "          git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes"
-  echo "          bash /tmp/oh-my-hermes/install.sh"
-  exit 1
-fi
-
-mkdir -p "$SKILLS_DIR"
-mkdir -p "$WORKFLOWS_DIR"
-mkdir -p "$AGENTS_DIR"
-mkdir -p "$SCRIPTS_DIR"
-
-# Install skills
-SKILLS_INSTALLED=0
-if [ -d "$SCRIPT_DIR/skills" ]; then
-  for skill in "$SCRIPT_DIR/skills"/*.md; do
-    [ -f "$skill" ] || continue
-    cp "$skill" "$SKILLS_DIR/"
-    SKILLS_INSTALLED=$((SKILLS_INSTALLED + 1))
-  done
-fi
-
-# Install Oh My Hermes helper scripts.
-SCRIPTS_INSTALLED=0
-for script in "$SCRIPT_DIR/scripts"/*.sh; do
-  [ -f "$script" ] || continue
-  install -m 700 "$script" "$SCRIPTS_DIR/$(basename "$script")"
-  SCRIPTS_INSTALLED=$((SCRIPTS_INSTALLED + 1))
+command -v python3 >/dev/null || { echo '[ERROR] python3 is required.'; exit 1; }
+[ -d "$HERMES_DIR" ] || { echo "[ERROR] Hermes home missing: $HERMES_DIR. Install Hermes Agent first."; exit 1; }
+for directory in skills workflows agents scripts templates; do
+  [ -d "$SCRIPT_DIR/$directory" ] || { echo '[ERROR] Run install.sh from a full Oh My Hermes checkout.'; exit 1; }
 done
+python3 - "$SCRIPT_DIR" "$HERMES_DIR" <<'PY'
+import hashlib
+import json
+from pathlib import Path
+import shutil
+import sys
 
-# Install workflows
-WORKFLOWS_INSTALLED=0
-if [ -d "$SCRIPT_DIR/workflows" ]; then
-  for workflow in "$SCRIPT_DIR/workflows"/*.md; do
-    [ -f "$workflow" ] || continue
-    cp "$workflow" "$WORKFLOWS_DIR/"
-    WORKFLOWS_INSTALLED=$((WORKFLOWS_INSTALLED + 1))
-  done
-fi
-
-# Install agents
-AGENTS_INSTALLED=0
-if [ -d "$SCRIPT_DIR/agents" ]; then
-  for agent in "$SCRIPT_DIR/agents"/*.md; do
-    [ -f "$agent" ] || continue
-    cp "$agent" "$AGENTS_DIR/"
-    AGENTS_INSTALLED=$((AGENTS_INSTALLED + 1))
-  done
-fi
-
-echo ""
-echo "[OK] Skills installed:    $SKILLS_INSTALLED → $SKILLS_DIR"
-echo "[OK] Workflows installed: $WORKFLOWS_INSTALLED → $WORKFLOWS_DIR"
-echo "[OK] Agents installed:    $AGENTS_INSTALLED → $AGENTS_DIR"
-echo "[OK] Scripts installed:   $SCRIPTS_INSTALLED → $SCRIPTS_DIR"
-echo ""
-echo "Next steps:"
-echo "  1. cd into your project directory"
-echo "  2. bash $SCRIPT_DIR/scripts/bootstrap.sh"
-echo "  3. Fill in AGENTS.md and .env.example"
-echo "  4. Tell Hermes: 'set up the CTO loop for [owner/repo]'"
-echo ""
-echo "Verify: bash $SCRIPT_DIR/scripts/verify.sh"
+source, home = (Path(arg).resolve() for arg in sys.argv[1:])
+manifest = home / '.oh-my-hermes-manifest.json'
+if manifest.is_symlink():
+    sys.exit('[ERROR] Refusing symlinked ownership manifest.')
+owned = json.loads(manifest.read_text()) if manifest.exists() else {}
+files = [(p, Path('skills/oh-my-hermes') / p.stem / 'SKILL.md') for p in sorted((source / 'skills').glob('*.md'))]
+for directory in ('workflows', 'agents', 'scripts', 'templates'):
+    files.extend((p, p.relative_to(source)) for p in sorted((source / directory).rglob('*'))
+                 if p.is_file() and (directory != 'scripts' or p.suffix in ('.sh', '.py')))
+installed = 0
+for src, relative in files:
+    dest = home / relative
+    key = relative.as_posix()
+    # Never follow a user-owned symlink while installing managed files.
+    if any(p.is_symlink() for p in (dest, *dest.parents) if p != home and home in p.parents):
+        print(f'[PRESERVED] {relative}: symlink')
+        continue
+    if dest.exists() and (not dest.is_file() or hashlib.sha256(dest.read_bytes()).hexdigest() != owned.get(key)):
+        print(f'[PRESERVED] {relative}: customized or unowned')
+        continue
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(src, dest)
+    dest.chmod(0o700 if relative.parts[0] == 'scripts' else 0o600)
+    owned[key] = hashlib.sha256(dest.read_bytes()).hexdigest()
+    installed += 1
+manifest.write_text(json.dumps(owned, indent=2) + '\n')
+manifest.chmod(0o600)
+print(f'[OK] Installed {installed} files in {home}. Existing custom files were preserved.')
+print(f'Verify: bash {home}/scripts/verify.sh')
+print(f'Bootstrap: cd YOUR_NEXTJS_PROJECT && bash {home}/scripts/bootstrap.sh')
+PY

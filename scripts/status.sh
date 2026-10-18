@@ -18,20 +18,18 @@ current_project() {
   fi
 }
 
-load_project_env() {
-  local slug="$1"
-  local env_file="$HERMES_HOME/projects/$slug.env"
-  if [ -f "$env_file" ]; then
-    set -a
-    # shellcheck disable=SC1090
-    . "$env_file"
-    set +a
-  fi
-}
-
-connected() {
+configured() {
   local key="$1"
-  [ -n "${!key:-}" ] && echo "connected" || echo "not connected"
+  if [ -n "${!key:-}" ] || python3 - "$HERMES_HOME/.env" "$key" <<'CHECK'
+import pathlib, re, sys
+path = pathlib.Path(sys.argv[1])
+for line in path.read_text().splitlines() if path.exists() else []:
+    match = re.fullmatch(r"(?:export\s+)?" + re.escape(sys.argv[2]) + r"\s*=\s*(.*)", line)
+    if match and match[1].strip().strip("\"'"):
+        sys.exit(0)
+sys.exit(1)
+CHECK
+  then echo "configured (unverified)"; else echo "not configured"; fi
 }
 
 line() {
@@ -39,7 +37,8 @@ line() {
 }
 
 project="$(current_project)"
-load_project_env "$project"
+GITHUB_REPO="$(bash "$SCRIPT_DIR/project.sh" get GITHUB_REPO "$project")"
+PRODUCTION_URL="$(bash "$SCRIPT_DIR/project.sh" get PRODUCTION_URL "$project")"
 
 echo "Oh My Hermes Status"
 echo "==================="
@@ -48,17 +47,17 @@ line "Repo" "${GITHUB_REPO:-not connected}"
 line "Production" "${PRODUCTION_URL:-not connected}"
 
 if command -v hermes >/dev/null 2>&1; then
-  line "Hermes" "$(hermes --version 2>/dev/null || echo connected)"
-  if hermes gateway status >/tmp/omh-gateway-status.$$ 2>/dev/null; then
-    if grep -q "User gateway service is running" /tmp/omh-gateway-status.$$ || grep -q "Active: active" /tmp/omh-gateway-status.$$; then
+  line "Hermes" "$(hermes --version 2>/dev/null || echo unavailable)"
+  gateway_status="$(hermes gateway status 2>/dev/null || true)"
+  if [ -n "$gateway_status" ]; then
+    if grep -q "User gateway service is running" <<< "$gateway_status" || grep -q "Active: active" <<< "$gateway_status"; then
       line "Gateway" "running"
     else
-      line "Gateway" "$(head -1 /tmp/omh-gateway-status.$$)"
+      line "Gateway" "$(head -1 <<< "$gateway_status")"
     fi
   else
     line "Gateway" "unknown"
   fi
-  rm -f /tmp/omh-gateway-status.$$
   model_line="$(hermes config show 2>/dev/null | grep -E "Model:|provider|default" | head -1 | sed -E 's/^[[:space:]]+//; s/[{}]//g' || true)"
   line "Model" "${model_line:-unknown}"
   cron_count="$(hermes cron list 2>/dev/null | grep -Ec '^[[:space:]]*[0-9]+|oh-my-hermes' || true)"
@@ -70,11 +69,11 @@ else
   line "Crons" "not available"
 fi
 
-line "OpenAI" "$(connected OPENAI_API_KEY)"
-line "Buffer" "$(connected BUFFER_API_KEY)"
-line "Seedance" "$(connected ARK_API_KEY)"
+line "OpenAI" "$(configured OPENAI_API_KEY)"
+line "Buffer" "$(configured BUFFER_API_KEY)"
+line "Seedance" "$(configured ARK_API_KEY)"
 
-dead_dir="$HERMES_HOME/oh-my-hermes/dead-letter"
+dead_dir="$HERMES_HOME/oh-my-hermes/dead-letter/$project"
 if [ -d "$dead_dir" ]; then
   dead_count="$(find "$dead_dir" -type f | wc -l | tr -d ' ')"
 else

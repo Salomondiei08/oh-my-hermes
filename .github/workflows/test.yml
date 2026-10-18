@@ -8,15 +8,18 @@ on:
 jobs:
   smoke:
     runs-on: ubuntu-latest
+    env:
+      HERMES_HOME: ${{ runner.temp }}/omh-hermes
+      TEST_MODE: "1"
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Oh My Hermes into fake ~/.hermes
+      - name: Validate source skills
+        run: bash scripts/validate-skills.sh
+      - name: Run behavioral regression tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Install into isolated Hermes root
         run: |
-          mkdir -p ~/.hermes/skills ~/.hermes/workflows ~/.hermes/agents
+          mkdir -p "$HERMES_HOME"
           bash install.sh
-
-      - name: Run smoke tests
+      - name: Verify installed discovery paths
         run: bash scripts/test.sh
-        env:
-          TEST_MODE: "1"
