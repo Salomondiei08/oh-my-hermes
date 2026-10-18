@@ -1,7 +1,7 @@
 ---
 name: kanban-task
 description: Use when any agent starts, updates, or completes a unit of work that should be visible on the Hermes kanban board
-version: 1.1.0
+version: 1.1.1
 tags: [kanban, task, tracking, ops, autonomous]
 metadata:
   hermes:
@@ -55,7 +55,7 @@ kanban_create title="Fix: [what]" assignee="dev" body="Issue #[n] | Why: [one se
 
 Acceptance criteria must be a concrete, verifiable check — not "it works." If you cannot write a specific check, ask for clarification before creating the card.
 
-Save returned task ID to Hermes memory: key `task-id-issue-[n]`.
+Save returned task ID to Hermes memory: key `project:<slug>:task-id-issue-[n]`.
 
 **Claim and move to running (Dev Agent):**
 ```bash

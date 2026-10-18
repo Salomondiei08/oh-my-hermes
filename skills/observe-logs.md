@@ -1,7 +1,7 @@
 ---
 name: observe-logs
 description: Use when production logs need recurring review for new errors, regressions, security signals, or incidents without flooding the founder with raw output
-version: 1.0.0
+version: 1.0.1
 tags: [logs, observability, incident, ops]
 metadata:
   hermes:
@@ -28,7 +28,7 @@ previous run, and escalates only actionable changes.
 
 ## Procedure
 
-1. Read `log-observer-state` from memory: last timestamp, known fingerprints,
+1. Read `project:<slug>:log-observer-state` from memory: last timestamp, known fingerprints,
    open incidents, and last healthy deployment.
 2. Pull only the new time window. Start with provider error events and recent
    deployment logs rather than dumping the full history.
@@ -46,7 +46,7 @@ previous run, and escalates only actionable changes.
    notify the founder in plain language. Do not send one message per log line.
 8. For noise or unchanged known groups, update counts silently.
 9. Save the new cursor, fingerprints, and incident mapping to
-   `log-observer-state`.
+   `project:<slug>:log-observer-state`.
 
 ## Pitfalls
 

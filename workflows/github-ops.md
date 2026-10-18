@@ -20,9 +20,10 @@ PRODUCT TASK / ISSUE / USER FEEDBACK
   ↓  choose-engine          ← route to Hermes / Claude Code / Codex
   ↓  implement              ← build the fix or feature
   ↓  create-github-pr       ← PR from feature branch with memory context
-  ↓  deploy-to-vercel       ← preview deployment auto-created by Vercel
+  ↓  deploy-to-vercel       ← preview only; verify immutable ID/SHA
   ↓  security + reviewer    ← verify behavior, risk, and preview
-  ↓  founder YES / NO / CLOSE / LATER
+  ↓  await-merge-approval   ← repo/project/environment/exact-SHA founder gate
+  ↓  deploy-to-vercel       ← approved production target only
   ↓  post-deploy-followup   ← production health check + notification
 ```
 
@@ -42,5 +43,6 @@ run the github-ops workflow for issue #42
 ## Notes
 
 - Preview deployments are created automatically when a PR is opened (requires Vercel GitHub integration, set up via `deploy-to-vercel`)
-- Merging to main triggers production deployment automatically
+- If merging triggers production, gate that trigger with exact deployment-SHA approval.
+  Otherwise merge into a non-releasing branch and approve the resulting SHA before release.
 - `post-deploy-followup` runs after every production deploy

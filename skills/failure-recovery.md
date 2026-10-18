@@ -1,7 +1,7 @@
 ---
 name: failure-recovery
 description: Use when cron, gateway, deploy, log scanning, or agent work fails and the founder needs a saved error with recovery steps
-version: 1.1.0
+version: 1.1.1
 tags: [cron, failure, recovery, dead-letter, operations]
 ---
 
@@ -14,7 +14,7 @@ tags: [cron, failure, recovery, dead-letter, operations]
 ## Prerequisites
 
 - `~/.hermes/scripts/run-cron-safe.sh` installed.
-- Notification backend configured for alerts when available.
+- Notification backend only if a reviewed manual notification is needed.
 - Hermes v0.19+ for cron durable audit history.
 
 ## Procedure
@@ -32,17 +32,25 @@ tags: [cron, failure, recovery, dead-letter, operations]
    ```bash
    ~/.hermes/oh-my-hermes/dead-letter/myapp/
    ```
-4. Redact secrets before summarizing.
-5. Create or update a kanban task with the failing command, exit code, likely
-   cause, and next recovery action.
-6. Notify the founder only for actionable new patterns.
+4. The wrapper records only project, job, timestamp and exit code. It deliberately
+   discards arbitrary stdout/stderr and command arguments on success and failure;
+   no automatic redaction guarantee or automatic notification exists. Inspect the
+   job definition and provider audit privately for the cause. If more diagnostics
+   are needed, use an explicitly reviewed secret-safe command; do not rerun an
+   operation merely to capture its raw output.
+5. Create/update the existing Hermes task with project/job, exit code, evidence,
+   likely cause and next recovery action. Never persist raw credentials, command
+   arguments or provider response bodies.
+6. Optionally use send-notification with a reviewed sanitized summary for an
+   actionable new failure. Verify receipt separately; wrapper failure is not proof
+   any message was sent.
 
 ## Pitfalls
 
 - Do not paste full command output if it includes request bodies or credentials.
 - Do not retry paid or destructive operations automatically.
-- Gateway auto-resume (v0.19+) restarts the gateway on crash — if jobs fail
-  repeatedly, the issue is not the gateway but the job itself.
+- Repeated failures require diagnosis; neither gateway restart nor job exit alone
+  establishes the root cause.
 
 ## Verification
 

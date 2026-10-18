@@ -1,7 +1,7 @@
 ---
 name: clarify-requirements
 description: Use when a new project or significant feature has enough ambiguity to risk building the wrong outcome
-version: 2.0.0
+version: 2.0.1
 tags: [requirements, planning, assumptions, product]
 ---
 
@@ -37,7 +37,7 @@ Do not use for small fixes or choices already documented in the project.
 5. If the user answers partially, use those answers and default the rest. If the
    user does not answer, continue with all recommended defaults.
 6. Save structured requirements and assumptions to Hermes memory under
-   `requirements-[project-name]`.
+   `project:<slug>:requirements-[project-name]`.
 7. Continue directly to `product-brief` unless an irreversible or credentialed
    decision is genuinely blocking.
 

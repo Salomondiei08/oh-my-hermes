@@ -1,7 +1,7 @@
 ---
 name: project-switch
 description: Use when the founder wants Hermes to work on a different product without mixing memory, crons, logs, or integration state
-version: 1.0.0
+version: 1.0.1
 tags: [project, memory, context, switch]
 ---
 
@@ -24,7 +24,12 @@ tags: [project, memory, context, switch]
    ```bash
    ~/.hermes/scripts/project.sh switch myapp --repo owner/repo --url https://app.example.com
    ```
-4. Use the current project slug in memory keys, dead-letter paths, campaign
+4. Use `project:<slug>:<key>` for all project-specific Hermes memory. Resolve
+   the slug once with `project.sh current` and pass it explicitly through every
+   handoff and scheduled job. Read metadata with `project.sh get KEY [slug]`;
+   the legacy `.env` file is validated data, never shell-source it. Do not read
+   legacy unscoped keys as fallback; verify ownership before any one-time migration.
+   Use the same slug in dead-letter paths, campaign
    logs, status reports, and cron names.
 5. Continue the requested work in the selected project. Do not ask for more
    project details unless they materially change the next action.

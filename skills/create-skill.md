@@ -1,7 +1,7 @@
 ---
 name: create-skill
 description: Use when adding a new capability to Hermes that does not exist in the current skill pack
-version: 1.0.0
+version: 1.0.1
 tags: [meta, skills, creation]
 ---
 
@@ -61,10 +61,10 @@ tags: [tag1, tag2]
 ```
 
 Write to:
-1. `~/.hermes/skills/[skill-name].md` — immediate load
+1. `${HERMES_HOME:-$HOME/.hermes}/skills/oh-my-hermes/<name>/SKILL.md` — immediate catalog discovery
 2. `[oh-my-hermes-repo]/skills/[skill-name].md` — repo persistence (if accessible)
 
-Save to Hermes memory: key `skill-created-[skill-name]`, value `{ name, description, date }`.
+Save to Hermes memory: key `project:<slug>:skill-created-[skill-name]`, value `{ name, description, date }`.
 
 Offer to test the new skill immediately.
 
@@ -77,6 +77,6 @@ Offer to test the new skill immediately.
 
 ## Verification
 
-- `~/.hermes/skills/[skill-name].md` exists
+- `${HERMES_HOME:-$HOME/.hermes}/skills/oh-my-hermes/<name>/SKILL.md` exists
 - Tell Hermes "load skill [skill-name]" — it responds correctly
 - Skill saved to Hermes memory

@@ -1,7 +1,7 @@
 ---
 name: automation-blueprint
 description: Use when a multi-step recurring task should be saved as a reusable parameterized blueprint that runs across sessions without manual prompting
-version: 1.0.0
+version: 1.0.1
 tags: [automation, blueprint, workflow, recurring, schedule]
 metadata:
   hermes:
@@ -57,11 +57,11 @@ steps:
   - name: audit
     prompt: "Run product-marketing skill for {PROJECT_SLUG}: audit SEO at {TARGET_URL}"
   - name: draft
-    prompt: "Draft two social posts from the audit findings. Save to memory: seo-draft-{PROJECT_SLUG}"
+    prompt: "Draft two social posts from the audit findings. Save to memory: project:{PROJECT_SLUG}:seo-draft"
     depends_on: audit
   - name: approve
     type: approval
-    message: "SEO audit done. Review drafts in memory key seo-draft-{PROJECT_SLUG}. Reply YES to schedule."
+    message: "SEO audit done. Review drafts in memory key project:{PROJECT_SLUG}:seo-draft. Reply YES to schedule."
     depends_on: draft
   - name: schedule
     prompt: "Use publish-with-buffer to schedule the approved posts for {PROJECT_SLUG}"
@@ -94,7 +94,7 @@ hermes blueprint history weekly-seo-audit   # run history with outcomes
 - Add an `approval` step before any publish, spend, or destructive step.
 - Keep blueprints under 8 steps — anything larger should be a workflow.
 - Store state between steps in Hermes memory using a namespaced key
-  (`blueprint-run-[name]-[timestamp]`).
+  (`project:<slug>:blueprint-run-[name]-[timestamp]`).
 
 ## Pitfalls
 

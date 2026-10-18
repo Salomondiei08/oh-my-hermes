@@ -1,7 +1,7 @@
 ---
 name: design-handoff
 description: Use when a product or feature has user-facing behavior that should be designed and made testable before implementation
-version: 2.0.0
+version: 2.0.1
 tags: [design, ux, responsive, implementation, verification]
 ---
 
@@ -39,7 +39,8 @@ not a prerequisite.
    - Assumptions
 4. Write or update `IMPLEMENTATION_SPEC.md` only with engineering-relevant
    routes, components, data, interactions, and implementation order.
-5. Save the implementation summary to Hermes memory.
+5. Save the implementation summary to Hermes memory under
+   `project:<slug>:implementation-spec-[feature-name]`.
 6. After implementation, inspect the rendered product with browser tools. Use
    `computer-use` only when native or authenticated GUI operation is required.
 7. Return concrete discrepancies to Builder and re-check the corrected output.

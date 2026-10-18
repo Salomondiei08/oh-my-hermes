@@ -1,7 +1,7 @@
 ---
 name: create-github-pr
 description: Use when implementation is complete on a feature branch and a pull request needs to be created
-version: 1.0.0
+version: 1.0.1
 tags: [github, pr, ops, review]
 ---
 
@@ -42,7 +42,7 @@ Creates a GitHub PR with a description drawn from Hermes memory — implementati
    ```
 
 4. Retrieve from Hermes memory:
-   - `implementation-spec-[feature-name]` or `implementation-[feature-name]`
+   - `project:<slug>:implementation-spec-[feature-name]` or `project:<slug>:implementation-[feature-name]`
    - Any linked issue numbers
 
 5. Compose PR body:
@@ -73,7 +73,7 @@ Creates a GitHub PR with a description drawn from Hermes memory — implementati
    ```
    Use `--draft` by default. Remove when ready for review.
 
-7. Save PR URL to Hermes memory: key `pr-[feature-name]`, value `{ url, number, branch }`.
+7. Save PR URL to Hermes memory: key `project:<slug>:pr-[feature-name]`, value `{ url, number, branch }`.
 
 8. Offer to run `health-check` on the Vercel preview URL.
 

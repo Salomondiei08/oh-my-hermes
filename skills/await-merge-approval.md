@@ -1,7 +1,7 @@
 ---
 name: await-merge-approval
 description: Use when a reviewed product increment is ready and the founder must choose whether to ship, revise, close, or defer it
-version: 2.1.0
+version: 2.1.1
 tags: [release, github, approval, human-in-loop]
 metadata:
   hermes:
@@ -42,9 +42,19 @@ processed when the Gateway comes back.
    CLOSE stop this work and close the PR
    LATER remind me in two hours
    ```
-2. Save `pending-approval` with PR, task, timestamp, and status.
-3. On **YES**, re-check mergeability and required checks, merge with the
-   repository's configured strategy, then load `post-deploy-followup`.
+2. Read `gh pr view <number> --repo <owner/repo> --json headRefOid,baseRefName,url`.
+   Save `project:<slug>:pending-approval` with repository, project, environment,
+   PR, exact reviewed headRefOid, task, preview, checks, timestamp and status.
+   Include those concrete targets and the reviewed SHA in the approval message.
+   If merging triggers production, approval must also cover the exact resulting
+   deployment SHA; use a gated release workflow when the merge SHA is not yet known.
+3. On **YES**, re-fetch headRefOid and compare with the saved reviewed SHA.
+   Verify repository, project, environment, reviews and required checks still match.
+   Any mismatch requires renewed review and approval. Merge using
+   `gh pr merge <number> --repo <owner/repo> --match-head-commit <reviewed-sha>`
+   with the configured merge strategy. Never let a production auto-deploy bypass
+   the exact deployment-SHA gate. Run deploy-to-vercel for an approved release,
+   then post-deploy-followup against the observed deployment.
 4. On **NO**, save any supplied feedback, request changes on the PR, return the
    task to Builder, and continue even if the founder gives only a short reason.
 5. On **CLOSE**, confirm that closing is intended if the wording was ambiguous,

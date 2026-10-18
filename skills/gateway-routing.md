@@ -1,7 +1,7 @@
 ---
 name: gateway-routing
 description: Use when you want to route specific Telegram chats, Discord channels, or Slack workspaces to specific Hermes profiles so each agent receives only relevant messages
-version: 1.0.0
+version: 1.0.1
 tags: [gateway, profiles, routing, telegram, discord, slack, messaging]
 metadata:
   hermes:
@@ -120,7 +120,9 @@ Output shows each profile, its platform bindings, and whether it is active.
 - Misconfigured `chat_id` or `guild_id` values silently fall through to the
   default profile. Run `hermes gateway status` to confirm bindings are live.
 - Memory is per-profile and not shared between routed profiles. If ops needs
-  context from cto's session, use an explicit memory key handoff.
+  context from cto's session, pass an explicit `project:<slug>:<key>` handoff
+  through the existing task/tool boundary; memory scoping does not make profiles
+  share storage automatically.
 - On Telegram, bot tokens require the bot to be a member of the group with
   message read permission before routing to that chat works.
 

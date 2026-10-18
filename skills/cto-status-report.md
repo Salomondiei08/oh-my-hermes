@@ -1,7 +1,7 @@
 ---
 name: cto-status-report
 description: Use when the CTO Agent needs to send the founder a summary of everything in flight, completed, or blocked
-version: 2.0.0
+version: 2.0.1
 tags: [cto, report, kanban, status, founder]
 ---
 
@@ -32,13 +32,13 @@ runtime signals. PR activity appears only when it needs a founder decision.
    ```
 
 2. **Read recent deployment log:**
-   Retrieve from Hermes memory: key `deployment-log` (last 5 entries)
+   Retrieve from Hermes memory: key `project:<slug>:deployment-log` (last 5 entries)
 
 3. **Read health log:**
-   Retrieve from Hermes memory: key `ops-health-log` (last 24 hours)
+   Retrieve from Hermes memory: key `project:<slug>:ops-health-log` (last 24 hours)
 
 4. **Read pending approvals:**
-   Retrieve from Hermes memory: key `pending-approval`
+   Retrieve from Hermes memory: key `project:<slug>:pending-approval`
 
 5. **Compose report** — plain English, lead with what matters most:
 
@@ -72,7 +72,7 @@ runtime signals. PR activity appears only when it needs a founder decision.
 
 6. **Send via `send-notification`** using founder's primary platform.
 
-7. **Save to Hermes memory:** key `status-report-log`, append `{ sentAt: now, blockedCount, awaitingCount, doneCount }`.
+7. **Save to Hermes memory:** key `project:<slug>:status-report-log`, append `{ sentAt: now, blockedCount, awaitingCount, doneCount }`.
 
 ## Tone rules
 

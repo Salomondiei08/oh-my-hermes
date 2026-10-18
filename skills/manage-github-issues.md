@@ -1,7 +1,7 @@
 ---
 name: manage-github-issues
 description: Use when GitHub issues need to be triaged, created, updated, labeled, or closed from the terminal
-version: 1.0.0
+version: 1.0.1
 tags: [github, issues, ops, triage]
 ---
 
@@ -20,7 +20,7 @@ Hermes manages GitHub issues via the `gh` CLI — list, triage, create, label, c
 
 - GitHub CLI: `npm install -g @github/cli` or `brew install gh`
 - Authenticated: `echo "$GITHUB_TOKEN" | gh auth login --with-token`
-- Project repo identified (from Hermes memory key `github-repo` or current directory)
+- Project repo identified (from Hermes memory key `project:<slug>:github-repo` or current directory)
 
 ## Procedure
 
@@ -61,7 +61,7 @@ gh issue close [number] --comment "Fixed in [commit/PR reference]"
 2. For each: `gh issue view [n]` → label as `bug` / `feature` / `question` / `wontfix`
 3. Assign priority: `priority:high` / `priority:low`
 4. If actionable now: route via `choose-engine`
-5. Save triage summary to Hermes memory: key `issue-triage-[date]`
+5. Save triage summary to Hermes memory: key `project:<slug>:issue-triage-[date]`
 
 ## Pitfalls
 

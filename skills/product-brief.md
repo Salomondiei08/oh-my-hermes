@@ -1,7 +1,7 @@
 ---
 name: product-brief
 description: Use when a product idea or feature needs a compact source of truth before design and implementation
-version: 2.0.0
+version: 2.0.1
 tags: [product, brief, scope, acceptance-criteria]
 ---
 
@@ -34,7 +34,7 @@ information.
    - **Constraints and Assumptions**
    - **Success Signal**
 3. Mark each unresolved item as an assumption with the recommended default.
-4. Save a compact copy to memory as `product-brief-[project-name]`.
+4. Save a compact copy to memory as `project:<slug>:product-brief-[project-name]`.
 5. Route UI or creative work to Designer; otherwise route the brief to Builder.
 
 ## Pitfalls
