@@ -133,6 +133,36 @@ class DistributionTests(unittest.TestCase):
         skill.write_text(skill.read_text().replace("tags: [test", "tags: [test]").replace("## Pitfalls", "## Other"))
         self.assertNotEqual(self.run_script(str(fixture / "scripts/validate-skills.sh")).returncode, 0)
 
+    def test_catalog_checker_supports_public_and_legacy_hermes_api(self):
+        import contextlib
+        import importlib.util
+        import io
+        import sys
+        import types
+        from unittest.mock import patch
+
+        spec = importlib.util.spec_from_file_location("check_hermes_catalog", ROOT / "tests/check_hermes_catalog.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        skills = [{"name": p.stem} for p in sorted((ROOT / "skills").glob("*.md"))]
+        for attr_name in ("find_all_skills", "_find_all_skills"):
+            with self.subTest(attr_name=attr_name):
+                fake_tools = types.ModuleType("tools")
+                fake_tools.__path__ = []
+                fake_skills_tool = types.ModuleType("tools.skills_tool")
+                setattr(fake_skills_tool, attr_name, lambda *, skip_disabled=False: skills if skip_disabled else [])
+                fake_skills_tool.skill_view = lambda name: json.dumps({"success": True, "name": name})
+                fake_tools.skills_tool = fake_skills_tool
+                output = io.StringIO()
+                with patch.dict(sys.modules, {"tools": fake_tools, "tools.skills_tool": fake_skills_tool}), \
+                     contextlib.redirect_stdout(output):
+                    module.main()
+                self.assertEqual(
+                    output.getvalue().strip(),
+                    f"UPSTREAM CATALOG AND LOAD: {len(skills)} OMH skills discovered and loaded",
+                )
+
 
 if __name__ == "__main__":
     unittest.main()
