@@ -58,6 +58,37 @@ class SkillContracts(unittest.TestCase):
                 for key in keys:
                     self.assertNotRegex(path.read_text(), rf'`{re.escape(key)}`', str(path))
 
+    def test_no_nonexistent_hermes_cli_commands(self):
+        forbidden = (
+            'hermes blueprint ',
+            'hermes gateway config',
+            'hermes gateway reload',
+            'hermes cron history --failed',
+            'hermes skills reload',
+            'hermes secrets get',
+        )
+        for path in sorted((ROOT / 'skills').glob('*.md')):
+            text = path.read_text()
+            for cmd in forbidden:
+                self.assertNotIn(cmd, text, f'{path.name} still references {cmd!r}')
+
+        blueprint = self.skill('automation-blueprint')
+        self.assertIn('/blueprint', blueprint)
+        self.assertIn('metadata.hermes.blueprint', blueprint)
+
+        routing = self.skill('gateway-routing')
+        for token in ('hermes config edit', 'hermes gateway restart', 'chat_id'):
+            self.assertIn(token, routing)
+        for legacy_key in ('channel_id', 'workspace_id'):
+            self.assertNotIn(legacy_key, routing)
+
+        recovery = self.skill('failure-recovery')
+        self.assertIn('hermes cron runs', recovery)
+        self.assertIn('hermes cron incidents', recovery)
+
+        learn = self.skill('learn-skill')
+        self.assertIn('~/.hermes/skills/<name>/SKILL.md', learn)
+
 
 
 class ProcedureExamples(unittest.TestCase):
