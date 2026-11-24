@@ -1,7 +1,7 @@
 ---
 name: onboarding
 description: Use when a user first installs Oh My Hermes or asks to set up the product-building loop for a project
-version: 2.1.0
+version: 2.1.1
 tags: [setup, onboarding, product-loop, guided]
 ---
 
@@ -37,7 +37,9 @@ work.
    defaults."
 5. Never ask the user to paste a token into chat. If GitHub is not authenticated,
    provide `gh auth login` as a follow-up; continue configuring local profiles.
-   If a vault is configured, source credentials from `hermes secrets get`.
+   If a vault is configured (`hermes secrets bitwarden status` or
+   `hermes secrets onepassword status`), let Hermes resolve external secret
+   references at startup instead of pasting tokens into chat.
 6. Create or verify profiles: `cto`, `pm` (Product), `designer`, `dev`, `qa`,
    `security`, and `ops`.
 7. Initialize Kanban and save available project context to memory.

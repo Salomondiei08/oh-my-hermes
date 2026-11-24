@@ -1,7 +1,7 @@
 ---
 name: learn-skill
 description: Use when you want to distill a workflow, session, directory, or URL into a reusable Hermes slash command without hand-writing a skill file
-version: 1.0.0
+version: 1.0.1
 tags: [skills, learning, distillation, workflow, automation]
 metadata:
   hermes:
@@ -14,7 +14,7 @@ metadata:
 
 `/learn` watches what happened in a session — or reads whatever source material
 you point it at — and authors a reusable skill that Hermes can invoke later with
-a single slash command. The output is a standard SKILL.md written to
+a single slash command. The output is a standard `SKILL.md` written under
 `~/.hermes/skills/` and immediately available.
 
 This is the fastest way to grow Oh My Hermes with skills tailored to your
@@ -24,7 +24,7 @@ specific stack, team process, or product.
 
 - You just walked through a workflow and want to repeat it without re-explaining.
 - A team process exists in a doc, URL, or script and you want Hermes to own it.
-- You want to extend Oh My Hermes without writing SKILL.md by hand.
+- You want to extend Oh My Hermes without writing `SKILL.md` by hand.
 - A skill you ran produced a better procedure than the written one — capture it.
 
 ## Prerequisites
@@ -67,16 +67,18 @@ Prose descriptions are fine — Hermes will match them against the current sessi
 context.
 
 **After confirming:**
-The skill is saved to `~/.hermes/skills/<name>.md` and is immediately invokable:
+The skill is saved to `~/.hermes/skills/<name>/SKILL.md` (with optional relative
+`references/` files for larger knowledge-base topics) and is immediately invokable:
 ```
 /<name>
 ```
 
 **Review or edit a learned skill:**
 ```bash
-cat ~/.hermes/skills/<name>.md
-# edit with any text editor, then reload:
-hermes skills reload
+cat ~/.hermes/skills/<name>/SKILL.md
+# edit ~/.hermes/skills/<name>/SKILL.md directly or via Hermes skill_manage,
+# then verify discovery with (Hermes reads updated SKILL.md files on load / next session):
+hermes skills list
 ```
 
 ## Design Rules

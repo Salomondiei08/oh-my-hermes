@@ -1,7 +1,7 @@
 ---
 name: failure-recovery
 description: Use when cron, gateway, deploy, log scanning, or agent work fails and the founder needs a saved error with recovery steps
-version: 1.1.1
+version: 1.1.2
 tags: [cron, failure, recovery, dead-letter, operations]
 ---
 
@@ -25,8 +25,10 @@ tags: [cron, failure, recovery, dead-letter, operations]
    ```
 2. On failure, first check the Hermes cron audit history (v0.19+ durable audit):
    ```bash
-   hermes cron history log-scan          # per-job history with exit codes
-   hermes cron history --failed          # all failed jobs across all crons
+   hermes cron list                      # check job IDs and last-run status
+   hermes cron runs <job-id>             # per-job durable execution history (alias: hermes cron history)
+   hermes cron incidents                 # list durable cron failure incidents across all jobs
+   hermes cron doctor                    # check scheduled jobs for common health issues
    ```
 3. Then inspect the newest dead-letter file:
    ```bash
@@ -55,5 +57,5 @@ tags: [cron, failure, recovery, dead-letter, operations]
 ## Verification
 
 - A failed wrapped command creates a `600` dead-letter file.
-- `hermes cron history` shows the job's failure with an exit code.
+- `hermes cron runs <job-id>` (or `hermes cron history <job-id>`) and `hermes cron incidents` surface the failure and run outcome.
 - `/status` or `project-status` reports a non-zero dead-letter count.
