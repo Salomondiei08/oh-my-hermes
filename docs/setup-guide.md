@@ -109,9 +109,10 @@ source ~/.bashrc
 npm install -g vercel
 vercel login
 
-# Supabase CLI (if using Supabase)
-npm install -g supabase
-supabase login
+# Supabase CLI (if using Supabase — install per project; global npm install is unsupported)
+# Inside your project directory:
+npm install --save-dev --save-exact supabase
+npx supabase login
 ```
 
 ---
@@ -283,7 +284,7 @@ hermes cron status
 **Health check always failing:**
 - Check that `/api/health` returns `{ "status": "ok" }` with HTTP 200
 - Check Vercel function logs in the dashboard
-- Check the URL saved in memory: retrieve `last-deployment`
+- Check the URL saved in memory: retrieve `project:<slug>:deployment:production` (or `project:<slug>:deployment:preview`)
 
 **Build failing on Vercel but passing locally:**
 - Compare Node.js version: `node --version` vs Vercel project settings
