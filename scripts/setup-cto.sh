@@ -78,7 +78,9 @@ if ! command -v hermes &>/dev/null; then
   echo "  curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash"
   exit 1
 fi
-ok "hermes: $(hermes --version 2>/dev/null || echo 'found')"
+HERMES_VERSION="$(hermes --version 2>/dev/null || true)"
+HERMES_VERSION="$(printf '%s\n' "$HERMES_VERSION" | sed -n '1p')"
+ok "hermes: ${HERMES_VERSION:-found}"
 
 PROFILE_CREATE_SUBCOMMAND=""
 if hermes_has_subcommand profile create; then

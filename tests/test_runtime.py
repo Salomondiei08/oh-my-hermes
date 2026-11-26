@@ -83,6 +83,42 @@ elif a[:2] in (['cron','create'],['cron','add'],['cron','edit']):
         self.assertIn('configured (unverified)', result.stdout)
         self.assertNotIn('FAKE_PRIVATE_CANARY', result.stdout + result.stderr)
 
+    def test_status_parses_multiline_hermes_version_and_hex_cron_headers(self):
+        stub = self.bin / 'hermes'
+        stub.write_text('''#!/usr/bin/env python3
+import sys
+
+args = sys.argv[1:]
+if args == ['--version']:
+    print('Hermes Agent v0.23.4 (2026.11.24)')
+    print('Install directory: /tmp/hermes')
+    print('Python: 3.14.7')
+elif args == ['gateway', 'status']:
+    print('✓ User gateway service is running')
+elif args == ['config', 'show']:
+    print('◆ Model')
+    print("  Model:        {'default': 'gpt-5.6', 'provider': 'openai'}")
+elif args == ['cron', 'list']:
+    print('  a90e5409f105 [active]')
+    print('    Name:      daily-digest')
+    print('  1eb023350df1 [active]')
+    print('    Name:      oh-my-hermes-daily-report')
+    print('    Workdir:   /tmp/cron-work/oh-my-hermes-daily-report')
+    print('  b089efa74ba0 [active]')
+    print('    Name:      oh-my-hermes-security-weekly')
+    print('    Workdir:   /tmp/cron-work/oh-my-hermes-security-weekly')
+    print('  755751593750 [paused]')
+    print('    Name:      paused-job')
+''')
+        stub.chmod(0o700)
+        result = self.run_script('status.sh')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('Hermes         Hermes Agent v0.23.4 (2026.11.24)\n', result.stdout)
+        self.assertNotIn('Install directory:', result.stdout)
+        self.assertIn('Gateway        running\n', result.stdout)
+        self.assertIn("Model          'default': 'gpt-5.6', 'provider': 'openai'\n", result.stdout)
+        self.assertIn('Crons          4 visible (3 active, 1 paused)\n', result.stdout)
+
     def test_setup_optional_environment_and_two_projects(self):
         self.stub_hermes(); self.install_setup_files()
         for project in ('alpha', 'beta'):
