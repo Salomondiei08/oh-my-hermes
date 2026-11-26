@@ -47,21 +47,45 @@ line "Repo" "${GITHUB_REPO:-not connected}"
 line "Production" "${PRODUCTION_URL:-not connected}"
 
 if command -v hermes >/dev/null 2>&1; then
-  line "Hermes" "$(hermes --version 2>/dev/null || echo unavailable)"
+  hermes_version="$(hermes --version 2>/dev/null || true)"
+  hermes_version="$(printf '%s\n' "$hermes_version" | sed -n '1p')"
+  line "Hermes" "${hermes_version:-unavailable}"
   gateway_status="$(hermes gateway status 2>/dev/null || true)"
   if [ -n "$gateway_status" ]; then
     if grep -q "User gateway service is running" <<< "$gateway_status" || grep -q "Active: active" <<< "$gateway_status"; then
       line "Gateway" "running"
     else
-      line "Gateway" "$(head -1 <<< "$gateway_status")"
+      line "Gateway" "$(printf '%s\n' "$gateway_status" | sed -n '1p')"
     fi
   else
     line "Gateway" "unknown"
   fi
-  model_line="$(hermes config show 2>/dev/null | grep -E "Model:|provider|default" | head -1 | sed -E 's/^[[:space:]]+//; s/[{}]//g' || true)"
+  model_line="$(hermes config show 2>/dev/null | grep -E "Model:|provider|default" | sed -n '1p' | sed -E 's/^[[:space:]]*(Model:[[:space:]]*)?//; s/[{}]//g' || true)"
   line "Model" "${model_line:-unknown}"
-  cron_count="$(hermes cron list 2>/dev/null | grep -Ec '^[[:space:]]*[0-9]+|oh-my-hermes' || true)"
-  line "Crons" "${cron_count:-0} visible"
+  cron_output="$(hermes cron list 2>/dev/null || true)"
+  cron_summary="$(python3 -c '
+import re, sys
+
+text = re.sub(r"\x1b\[[0-9;]*m", "", sys.stdin.read())
+headers = re.findall(r"^[ \t]+([A-Za-z0-9_-]+)[ \t]+\[([a-z][a-z_-]*)\][ \t]*$", text, re.M)
+if headers:
+    total = len(headers)
+    active = sum(state == "active" for _, state in headers)
+    paused = sum(state == "paused" for _, state in headers)
+    if paused:
+        print(f"{total} visible ({active} active, {paused} paused)")
+    else:
+        print(f"{total} visible")
+else:
+    count = sum(
+        1
+        for line in text.splitlines()
+        if not re.match(r"^[ \t]*Workdir:", line)
+        and re.match(r"^[ \t]*(?:Name:[ \t]*)?(?:[0-9]+\b|oh-my-hermes\S*)", line)
+    )
+    print(f"{count} visible")
+' <<<"$cron_output")"
+  line "Crons" "${cron_summary:-0 visible}"
 else
   line "Hermes" "not installed"
   line "Gateway" "not available"
