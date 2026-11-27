@@ -1,7 +1,7 @@
 ---
 name: setup-monitoring
 description: Use when a newly deployed app has no error tracking or uptime monitoring configured
-version: 1.0.0
+version: 1.0.1
 tags: [monitoring, sentry, uptime, ops]
 ---
 
@@ -13,7 +13,7 @@ Installs Sentry for error tracking and documents Uptime Kuma setup. Run once per
 
 - First deployment to Vercel is complete
 - App has no Sentry DSN configured
-- `monitoring-config` not in Hermes memory
+- `project:<slug>:monitoring-config` not in Hermes memory
 
 ## Prerequisites
 
@@ -57,7 +57,7 @@ In Uptime Kuma UI:
 
 No VPS: use Better Uptime (betteruptime.com) free tier.
 
-Save to Hermes memory: key `monitoring-config`, value `{ sentry: true, uptimeKuma: [url-or-null], slackAlert: true }`.
+Save to Hermes memory: key `project:<slug>:monitoring-config`, value `{ sentry: true, uptimeKuma: [url-or-null], slackAlert: true }`.
 
 ## Pitfalls
 
@@ -70,4 +70,4 @@ Save to Hermes memory: key `monitoring-config`, value `{ sentry: true, uptimeKum
 - `SENTRY_DSN` in Vercel env vars
 - Test error appears in Sentry dashboard
 - Uptime Kuma shows monitor as "Up"
-- `monitoring-config` saved to Hermes memory
+- `project:<slug>:monitoring-config` saved to Hermes memory

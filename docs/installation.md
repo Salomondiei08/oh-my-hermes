@@ -16,27 +16,26 @@ Use a current Hermes Agent build with `profile`, `cron`, and `kanban` commands a
 hermes profile --help
 hermes cron --help
 hermes kanban --help
+hermes skills search --help
+hermes computer-use --help   # optional on macOS
 ```
 
 ---
 
 ## Install Oh My Hermes
 
-**One-line:**
-
 ```bash
-curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
-```
-
-**Clone and install:**
-
-```bash
-git clone https://github.com/salomondiei08/oh-my-hermes
+git clone https://github.com/salomondiei08/oh-my-hermes.git
 cd oh-my-hermes
 bash install.sh
 ```
 
-The installer copies `skills/` to `~/.hermes/skills/` and `workflows/` to `~/.hermes/workflows/`. It is idempotent — running again updates existing files.
+The installer supports `${HERMES_HOME:-$HOME/.hermes}` and requires a full checkout
+and Python 3.9+. It installs skills as `skills/oh-my-hermes/<name>/SKILL.md`, copies
+helpers/templates, and records owned-file hashes. Re-running updates unchanged owned
+files; customized/unowned collisions are preserved and reported. Inspect those
+messages before treating an upgrade as complete. Legacy flat files are retained for
+manual comparison; do not delete customized files just to make verification pass.
 
 ---
 
@@ -46,22 +45,23 @@ The installer copies `skills/` to `~/.hermes/skills/` and `workflows/` to `~/.he
 bash scripts/verify.sh
 ```
 
-Expected output:
+Missing files cause a nonzero exit. This verifies layout, not model/provider access.
+After running setup, check runtime prerequisites separately:
+
+```bash
+bash "${HERMES_HOME:-$HOME/.hermes}/scripts/verify.sh" --setup
 ```
-[OK] Hermes found
-[OK] Skills directory: ~/.hermes/skills/
-[OK] 23 skills installed
-[OK] Workflows directory: ~/.hermes/workflows/
-[OK] 5 workflows installed
-[OK] 6 agents installed
-Next: cd into your project and run the bootstrap script.
-```
+
+Run repository regression checks with `python3 -m unittest discover -s tests -v`
+and `bash scripts/validate-skills.sh`. The validator uses Ruby's standard-library
+YAML parser and checks required sections and inline local links; remote URLs and
+anchors require separate review.
 
 ---
 
 ## Bootstrap a new project
 
-Inside your project directory:
+Inside an existing Next.js project with exactly one `app/` or `src/app/` directory:
 
 ```bash
 bash /path/to/oh-my-hermes/scripts/bootstrap.sh
@@ -70,7 +70,7 @@ bash /path/to/oh-my-hermes/scripts/bootstrap.sh
 Creates:
 - `AGENTS.md` — review and fill in the Architecture and Engine Guidance sections
 - `.env.example` — all expected variables with placeholder values
-- `src/app/api/health/route.ts` — working `/health` endpoint (Next.js App Router)
+- `app/api/health/route.ts` or `src/app/api/health/route.ts` — `/api/health`, matching the existing router
 
 Bootstrap is idempotent. Existing files are not overwritten.
 
@@ -107,11 +107,12 @@ Never commit `.env.local`. Only `.env.example` (with placeholder values) is comm
 ## For LLM agents
 
 ```bash
-git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes
-bash /tmp/oh-my-hermes/install.sh
-bash /tmp/oh-my-hermes/scripts/verify.sh
+git clone https://github.com/salomondiei08/oh-my-hermes.git
+cd oh-my-hermes
+bash install.sh
+bash "${HERMES_HOME:-$HOME/.hermes}/scripts/verify.sh" --install-only
 cd /path/to/target/project
-bash /tmp/oh-my-hermes/scripts/bootstrap.sh
+bash "${HERMES_HOME:-$HOME/.hermes}/scripts/bootstrap.sh"
 ```
 
 Common failures:
@@ -134,9 +135,10 @@ Project `AGENTS.md` and `.env.local` are never modified by the installer.
 ## Uninstalling
 
 ```bash
-rm ~/.hermes/skills/clarify-requirements.md
-rm ~/.hermes/skills/product-brief.md
-# ... remove individual skill files
+bash scripts/uninstall.sh
 ```
 
-No dedicated uninstall command — skills are just files.
+The uninstaller removes only unchanged files recorded in the ownership manifest.
+All profile directories, custom files and modified managed files are preserved.
+Legacy unmanifested installs need manual review. Dependent cron jobs are listed
+for review and never deleted automatically.

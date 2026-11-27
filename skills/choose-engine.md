@@ -1,13 +1,14 @@
 ---
 name: choose-engine
 description: Use when starting a coding task and unsure whether Hermes, Claude Code, or Codex should execute it
-version: 1.0.0
+version: 2.0.0
 tags: [routing, orchestration, engine]
 ---
 
 ## Overview
 
-5-branch decision tree that routes tasks to the right execution engine. Fast — a decision should take seconds.
+Routes work to the smallest capable execution surface. The decision should take
+seconds and should not become another interview.
 
 ## When to Use
 
@@ -23,28 +24,30 @@ tags: [routing, orchestration, engine]
 
 **Before routing — state assumptions (30 seconds, always):**
 
-Look at the task. Say out loud:
-- "I am assuming [X]" — if wrong, stop and ask.
-- "This could mean [A] or [B]" — if ambiguous, ask. Do not pick silently.
-- "A simpler approach would be [Y]" — if so, propose it instead.
-
-If the task is vague, ask one clarifying question. Do not start implementation on a guess.
+Inspect the project and state any material assumption. Choose the recommended
+reversible path and continue. Ask only when the engine changes cost,
+credentials, irreversible state, or a material product outcome.
 
 **Route in order — stop at the first match:**
 
-1. **UI/UX exploration, no code yet?**
-   → Claude Design (human step at claude.ai/design). Tell user, then offer to run `design-handoff` with the output.
+1. **Product design or visual verification?**
+   → Hermes Designer Agent. Load `design-handoff`; external design tools are
+   optional inputs.
 
-2. **Operational task?** (deploy, monitor, notify, health check, schedule, run migration)
+2. **Native or authenticated GUI with no better interface?**
+   → Hermes with `computer-use`.
+
+3. **Operational task?** (deploy, monitor, notify, health check, schedule, run migration)
    → Hermes handles directly. Load the matching skill.
 
-3. **Complex multi-file change?** (new feature across files, architectural refactor, new subsystem, test suite from scratch)
+4. **Complex multi-file change?** (new feature across files, architectural refactor, new subsystem, test suite from scratch)
    → Claude Code. Load `implement-with-claude-code`.
 
-4. **Targeted single-file change?** (known bug in specific file, adding one field, quick prototype)
+5. **Targeted single-file change?** (known bug in specific file, adding one field, quick prototype)
    → Codex. Load `implement-with-codex`.
 
-5. **Still unsure?** Ask once: "How many files will this change?" 1-2 → Codex. 3+ → Claude Code.
+6. **Still unsure?** Use Hermes directly for a bounded exploration, then route
+   based on the evidence. Do not ask the user to estimate file count.
 
 State the recommendation and rationale in one sentence. Offer to immediately load the implement skill.
 
@@ -53,6 +56,7 @@ State the recommendation and rationale in one sentence. Offer to immediately loa
 - The choice between Claude Code and Codex is recoverable. Do not overthink — speed matters more than perfection.
 - Do not route operational tasks to coding engines. Deploy, monitor, notify → Hermes only.
 - If a Codex task expands to 3+ files during execution, stop and switch to Claude Code.
+- Unanswered routing preferences are not blockers; use the recommended path.
 
 ## Verification
 

@@ -15,7 +15,6 @@ Oh My Hermes is a curated skills pack, conventions library, workflow documentati
 skills/          ← SKILL.md files (agentskills.io standard format)
 workflows/       ← Composite workflow documents linking multiple skills
 templates/       ← Starter files for new projects
-examples/        ← Working example apps
 scripts/         ← install.sh, bootstrap.sh, verify.sh
 docs/            ← Full documentation
 ```

@@ -19,21 +19,23 @@ https://hermes-agent.nousresearch.com/docs/getting-started/quickstart
 ## Step 1 — Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
+git clone https://github.com/salomondiei08/oh-my-hermes.git
+cd oh-my-hermes
+bash install.sh
 ```
 
-Installs 22 skills, 5 workflows, and 6 agent role definitions into `~/.hermes/`.
+Installs 39 skills, 6 workflows, 7 agent role definitions, and helper scripts
+into `~/.hermes/`.
 
 ---
 
 ## Step 2 — Verify
 
 ```bash
-git clone https://github.com/salomondiei08/oh-my-hermes /tmp/oh-my-hermes 2>/dev/null || true
-bash /tmp/oh-my-hermes/scripts/verify.sh
+bash "${HERMES_HOME:-$HOME/.hermes}/scripts/verify.sh" --install-only
 ```
 
-All items should show `[OK]`. If any show `[MISSING]`, re-run Step 1.
+Install verification must exit 0. Missing/customized managed files require review; this does not verify models, notifications, or a live agent session. After setup, separately run `verify.sh --setup`.
 
 ---
 
@@ -41,10 +43,17 @@ All items should show `[OK]`. If any show `[MISSING]`, re-run Step 1.
 
 ```bash
 cd /path/to/project
-bash /tmp/oh-my-hermes/scripts/bootstrap.sh
+bash "${HERMES_HOME:-$HOME/.hermes}/scripts/bootstrap.sh"
 ```
 
-Creates `AGENTS.md`, `.env.example`, and `src/app/api/health/route.ts`.
+Requires an existing Next.js App Router project. Creates missing `AGENTS.md`, `.env.example`, `.gitignore` exclusions, and a health route in its existing `app/` or `src/app/` tree.
+
+For a brand-new server, prefer the installed server bootstrap:
+
+```bash
+bash ~/.hermes/scripts/server-bootstrap.sh --project myapp --repo owner/repo --telegram
+bash ~/.hermes/scripts/status.sh
+```
 
 ---
 
@@ -55,11 +64,14 @@ export GITHUB_TOKEN=<fine-grained-token>   # Permissions: Contents/Issues/PRs/Me
 export GITHUB_USERNAME=<github-username>
 export GITHUB_REPO=<owner/repo>
 export PRODUCTION_URL=<https://yourapp.vercel.app>   # optional
+export PROJECT_SLUG=myapp  # stable product namespace
 
-bash /tmp/oh-my-hermes/scripts/setup-cto.sh
+bash "${HERMES_HOME:-$HOME/.hermes}/scripts/setup-cto.sh"
 ```
 
-Creates Hermes profiles (cto, pm, dev, qa, ops, security), initializes kanban, schedules 4 cron jobs.
+Creates Hermes profiles (cto, pm, designer, dev, qa, security, ops), initializes
+kanban, and schedules available product, health, logs, report, and security jobs
+using project-scoped names. Existing scoped jobs are reconciled; clearing a target pauses its jobs. Verify each profile’s model/provider and founder delivery separately. Legacy unscoped jobs require manual review.
 
 ---
 
@@ -68,7 +80,8 @@ Creates Hermes profiles (cto, pm, dev, qa, ops, security), initializes kanban, s
 In Hermes, run:
 
 ```
-/goal Manage [owner/repo] as CTO. Triage issues hourly, implement top priority, get founder approval before merging. Never ship without YES.
+/goal Build, launch, operate, and improve [product]. Keep one outcome active,
+verify it before shipping, and ask only at irreversible boundaries.
 ```
 
 ---
@@ -77,17 +90,18 @@ In Hermes, run:
 
 | Path | Contents |
 |---|---|
-| `~/.hermes/skills/` | 22 skills — full app lifecycle + CTO loop |
-| `~/.hermes/workflows/` | 5 workflows |
-| `~/.hermes/agents/` | 6 agent role definitions |
-| `~/.hermes/profiles/` | 6 active profiles (after setup-cto.sh) |
+| `~/.hermes/skills/oh-my-hermes/<name>/SKILL.md` | 39 skills — complete product lifecycle + CTO loop |
+| `~/.hermes/workflows/` | 6 workflows |
+| `~/.hermes/agents/` | 7 agent role definitions |
+| `~/.hermes/scripts/` | setup, status, project switch, reset, dead-letter helpers |
+| `~/.hermes/profiles/` | 7 profiles after setup; each still needs verified model access |
 
 ---
 
 ## Uninstall
 
 ```bash
-bash /tmp/oh-my-hermes/scripts/uninstall.sh
+bash "${HERMES_HOME:-$HOME/.hermes}/scripts/uninstall.sh"
 ```
 
 Removes all Oh My Hermes files. Hermes memory and gateway are untouched.

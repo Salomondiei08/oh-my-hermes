@@ -1,42 +1,27 @@
-# Workflow: Design to Code
-
-For when requirements are already clear but UI/UX design should happen before coding.
-
-## Invoke
-
-```
-tell hermes: I have done design work. Convert it to code.
-tell hermes: run the design-to-code workflow
-```
-
-## Prerequisites
-
-- Requirements are already clear (product brief exists or requirements are well understood)
-- `design-output.md` exists with exported Claude Design notes, OR you are about to do the design step now
+---
+name: design-to-code
+description: Turn product intent into a designed, implemented, and visually verified user experience without requiring a separate manual design tool
+version: 2.0.0
+tags: [design, ux, build, visual-verification]
+---
 
 ## Steps
 
-### 1. design-with-claude (human step)
-Open claude.ai/design. Describe the feature or screen.
-Export design decisions to `design-output.md`.
+1. Read `PRODUCT_BRIEF.md`, current UI, design system, and supplied references.
+2. Designer runs `design-handoff`, chooses a recommended direction, and writes
+   `DESIGN.md` plus implementation guidance.
+3. Ask the founder only if materially different directions cannot be changed
+   cheaply later. Otherwise continue with the documented recommendation.
+4. Builder implements the smallest complete experience.
+5. Designer inspects mobile and desktop renders and returns discrepancies.
+6. Builder fixes discrepancies.
+7. Reviewer exercises user journeys, states, responsiveness, and accessibility.
+8. For launch media, optionally run `creative-production` after the product is
+   real and reviewable.
 
-### 2. design-handoff
-Convert design-output.md to IMPLEMENTATION_SPEC.md.
-Flag any ambiguities with [NEEDS CLARIFICATION].
-Save spec to Hermes memory.
+## Verification
 
-### 3. Resolve [NEEDS CLARIFICATION] items
-For each flagged item, ask the user and update IMPLEMENTATION_SPEC.md before continuing.
-
-### 4. choose-engine
-For a single new page or component: likely Codex.
-For a multi-page feature or new subsystem: Claude Code.
-
-### 5. implement-with-claude-code or implement-with-codex
-Pass implementation spec + any relevant memory context.
-
-## If design-output.md is missing
-
-Ask the user: "Do you have Claude Design output ready? If yes, paste it into design-output.md. If no, open claude.ai/design first."
-
-Do not proceed to design-handoff without design-output.md.
+- The implemented experience satisfies product and design criteria.
+- Real screenshots were inspected at narrow and desktop viewports.
+- Empty, loading, error, success, and long-content states are coherent.
+- Launch assets, when requested, use verified product evidence.

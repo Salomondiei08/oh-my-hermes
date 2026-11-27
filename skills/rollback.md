@@ -1,7 +1,7 @@
 ---
 name: rollback
 description: Use when a health check fails after a deploy and the last deploy was under 2 hours ago, to roll back production to the previous working deployment
-version: 1.0.0
+version: 1.0.1
 tags: [ops, vercel, rollback, incident]
 metadata:
   hermes:
@@ -9,76 +9,55 @@ metadata:
     requires_toolsets: [terminal]
 ---
 
-## Overview
-
-Rolls back the Vercel production deployment to the previous version. Always requires explicit founder confirmation before executing. Logs the rollback to memory and notifies via `send-notification`.
-
 ## When to Use
 
-- Health check fails after a deploy AND last deploy was under 2 hours ago
-- Founder explicitly requests a rollback
-- Ops Agent identifies a production incident tied to a recent change
-
-Do NOT use for incidents unrelated to a recent deploy (e.g., Supabase outage, external API failure).
+A recent release caused an incident, or the founder requests production rollback.
 
 ## Prerequisites
 
-- `VERCEL_TOKEN` in environment
-- `vercel` CLI installed and authenticated: `vercel whoami`
-- Hermes memory has `last-deployment-url` (set by `deploy-to-vercel`)
-- Founder has been notified of the incident before this skill runs
+- Authenticated Vercel CLI and selected repository/project/environment.
+- Hermes memory record `project:<slug>:deployment:<env>` from deploy-to-vercel.
+- Incident evidence and founder notification.
 
 ## Procedure
 
-1. **Retrieve last deployment URL from memory:**
+1. Read that same deployment record. Select previousHealthy, requiring a distinct
+   ID and URL from current, healthStatus=healthy, immutable commit and timestamp.
+   If missing, inspect Vercel deployment history and independently verify an older
+   known-good release before proposing it. If none can be verified, stop and escalate.
+2. Use `vercel inspect <target-url>` to verify target belongs to this project and
+   environment and matches the recorded commit. Probe its health and the relevant
+   acceptance journey with bounded requests. Check installed `vercel rollback --help`
+   and plan restrictions; preview recovery requires a fresh preview, not this production command.
+3. Present repository, project, environment, broken current ID/URL/commit, exact
+   known-good target ID/URL/commit, reason and evidence. Save these with timestamp
+   in `project:<slug>:pending-approval`; wait for explicit founder approval of this
+   concrete rollback. Silence is not approval.
+4. Immediately re-read the record and inspect provider state. Invalidate approval
+   if current, target, repository, project or environment changed. Execute only
+   the approved target from the verified linked directory:
    ```bash
-   LAST_DEPLOY_URL=$(hermes memory get last-deployment-url 2>/dev/null)
+   vercel rollback <approved-target-id-or-url>
    ```
-   If empty, ask founder for the deployment URL before proceeding.
-
-2. **Show founder what will happen** — send this message via `send-notification` before acting:
-   ```
-   Rolling back production.
-
-   Current (broken): [current-url]
-   Rolling back to: previous deployment
-
-   This will make the previous deployment live immediately.
-
-   Reply YES to confirm.
-   ```
-
-3. **Wait for explicit YES.** If no response in 10 minutes, do not roll back. Alert founder again.
-
-4. **Execute rollback:**
-   ```bash
-   vercel rollback "$LAST_DEPLOY_URL" --token "$VERCEL_TOKEN" --yes
-   ```
-
-5. **Verify recovery** via `health-check` — wait 30 seconds for propagation, then run:
-   ```bash
-   curl -s -w "\n%{http_code}" "[production-url]/api/health"
-   ```
-   Expected: HTTP 200 + `"status":"ok"`.
-
-6. **Save to memory:** key `rollback-log`, append `{ rolledBackAt, fromUrl, reason, healthStatus }`.
-
-7. **Notify founder** of outcome via `send-notification`:
-   - Success: "Rolled back. Production is healthy. Health: [response-time]ms."
-   - Failure: "Rollback completed but health check still failing. Manual investigation needed."
-
-8. **Update kanban card** for the deploy that caused the incident to `blocked` with a note.
+5. Inspect provider alias/deployment state and run health-check plus the acceptance
+   journey against the production domain. Only after recovery is confirmed, set
+   current to the verified restored release (id, url, commit, timestamp, healthStatus).
+   Clear previousHealthy if it equals restored current; retain another target only
+   when independently verified distinct and healthy. Never promote the broken release
+   into previousHealthy as a side effect of swapping records.
+6. Append from/to IDs, commits, reason, approval and outcome to
+   `project:<slug>:rollback-log`. Notify founder and block the incident task until
+   recovery evidence is complete. One rollback attempt, then escalate if unhealthy.
 
 ## Pitfalls
 
-- Never roll back without founder confirmation — always send the confirmation message first.
-- Vercel rollback targets a specific deployment URL, not "previous". Use `last-deployment-url` from memory or ask for the exact URL.
-- If health check still fails after rollback, the issue is not deployment-related — escalate to founder with logs summary.
-- Do not chain multiple rollbacks. One rollback, verify, then stop. If still broken, alert founder.
+- Never fall back to the current broken URL or an unverified older release.
+- Failed rollback health does not prove the incident is unrelated to deployment.
+- Rollback CLI timeouts can leave provider work running; inspect state before retrying.
 
 ## Verification
 
-- `vercel ls --token "$VERCEL_TOKEN"` shows previous deployment now marked as current
-- `curl [production-url]/api/health` returns HTTP 200 + `status: ok`
-- Rollback entry saved to `rollback-log` in Hermes memory
-- Founder notified of outcome
+Provider target and production journey match the approved known-good commit.
+The shared deployment record and rollback log reflect observed health and founder was notified.
+
+Reference: [Vercel rollback](https://vercel.com/docs/cli/rollback).

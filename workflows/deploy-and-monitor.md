@@ -18,7 +18,9 @@ tell hermes: run the deploy-and-monitor workflow
 ## Steps
 
 ### 1. deploy-to-vercel
-Pre-deploy checklist → deploy → capture URL.
+Pre-deploy checklist → preview deployment → capture immutable ID/URL/commit.
+Production requires Security/Reviewer evidence and explicit approval of repository,
+project, environment and exact reviewed SHA before the release command/merge.
 Stop if any pre-deploy check fails.
 
 ### 2. connect-supabase (conditional)
@@ -36,17 +38,23 @@ Slack notification with deployment URL and monitoring status.
 ### 5. post-deploy-followup
 Health check → deployment log → summary.
 
+### 6. observe-logs
+Scan the first post-release window, deduplicate new failures, and correlate any
+regression with the release. Alert only on actionable new High/Critical groups.
+
 ## Rollback
 
-If deployment is unhealthy after deploying:
+If the deployment is unhealthy after deploying, load the `rollback` skill:
 
-```bash
-# In Vercel dashboard: Deployments → select last known good → Promote to Production
-# Or via CLI:
-vercel rollback
+```
+tell hermes: run rollback
 ```
 
-Then run `post-deploy-followup` again on the rolled-back URL.
+The `rollback` skill health-checks the current deployment, confirms with the
+founder before acting, verifies and names a distinct known-good previousHealthy ID/URL/commit from
+`project:<slug>:deployment:<env>`, rolls back to that exact target, then
+re-runs `post-deploy-followup` to verify recovery. Rollback requires founder
+YES — it does not happen automatically.
 
 ## Setting up GitHub auto-deploy
 
@@ -56,5 +64,6 @@ vercel link
 # Vercel dashboard → Project Settings → Git → Connect GitHub Repository
 ```
 
-Push to main = automatic production deploy.
+Connecting a production branch can release on push/merge. Enable it only with a
+gate that requires repository/project/environment/exact deployment-SHA approval.
 Push to any other branch = preview deployment with unique URL.

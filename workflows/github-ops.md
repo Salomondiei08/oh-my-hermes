@@ -1,25 +1,29 @@
 ---
 name: github-ops
-description: Manage GitHub issues and pull requests from idea to merge
-version: 1.0.0
+description: Use GitHub issues and pull requests as delivery evidence inside the broader product-building lifecycle
+version: 2.0.0
 tags: [github, workflow, issues, pr]
 ---
 
 ## Overview
 
-Full GitHub ops workflow: triage issues → route to implementation → create PR → verify → merge.
+Supporting GitHub workflow: connect product work to an issue when useful, create
+a reviewable PR, collect checks and reviews, then wait for founder release
+approval. GitHub is not the roadmap or the top-level product loop.
 
 ## Steps
 
 ```
-ISSUE / BUG REPORT
-  ↓  manage-github-issues   ← triage, label, assign
+PRODUCT TASK / ISSUE / USER FEEDBACK
+  ↓  product brief + acceptance criteria
+  ↓  manage-github-issues   ← link or create issue when useful
   ↓  choose-engine          ← route to Hermes / Claude Code / Codex
   ↓  implement              ← build the fix or feature
   ↓  create-github-pr       ← PR from feature branch with memory context
-  ↓  deploy-to-vercel       ← preview deployment auto-created by Vercel
-  ↓  health-check           ← verify preview URL
-  ↓  [human] review + merge
+  ↓  deploy-to-vercel       ← preview only; verify immutable ID/SHA
+  ↓  security + reviewer    ← verify behavior, risk, and preview
+  ↓  await-merge-approval   ← repo/project/environment/exact-SHA founder gate
+  ↓  deploy-to-vercel       ← approved production target only
   ↓  post-deploy-followup   ← production health check + notification
 ```
 
@@ -39,5 +43,6 @@ run the github-ops workflow for issue #42
 ## Notes
 
 - Preview deployments are created automatically when a PR is opened (requires Vercel GitHub integration, set up via `deploy-to-vercel`)
-- Merging to main triggers production deployment automatically
+- If merging triggers production, gate that trigger with exact deployment-SHA approval.
+  Otherwise merge into a non-releasing branch and approve the resulting SHA before release.
 - `post-deploy-followup` runs after every production deploy

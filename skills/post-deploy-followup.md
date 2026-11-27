@@ -1,65 +1,40 @@
 ---
 name: post-deploy-followup
 description: Use when a deployment has just completed and health verification, logging, and notification need to run
-version: 1.0.0
+version: 1.0.1
 tags: [deployment, ops, health, notification]
 ---
 
-## Overview
-
-Orchestrates the three post-deploy actions: health-check → log to memory → send-notification. The only skill that writes deployment history.
-
 ## When to Use
 
-- Immediately after every deployment (called automatically by `deploy-to-vercel`)
-- Manually after any deployment not handled by that skill
+Immediately after a deployment, including deployments initiated outside this pack.
 
 ## Prerequisites
 
-- Deployment URL in Hermes memory (key: `last-deployment-url`) or provided directly
-- `health-check` skill available
-- `send-notification` skill available
+- Selected slug/environment and immutable deployment ID/URL/commit.
+- `project:<slug>:deployment:<env>` record, health-check and send-notification.
 
 ## Procedure
 
-1. **Get URL** from Hermes memory key `last-deployment-url` or from user
-
-2. **Run `health-check`**
-   - PASS → continue
-   - FAIL → run `send-notification` with failure message, log failure, stop. Do not report success.
-
-3. **Log deployment to Hermes memory:**
-   - key: `deployment-log`
-   - Append: `{ url, timestamp, healthStatus: "healthy" | "unhealthy", engine: "claude-code" | "codex" | "hermes" | "manual" }`
-
-4. **Run `send-notification`:**
-   - Event: "Deploy"
-   - Status: healthy
-   - Include URL
-
-5. **Check monitoring:**
-   - Retrieve `monitoring-config` from Hermes memory
-   - Not configured → print: "Monitoring not configured. Run `setup-monitoring` to set up Sentry and Uptime Kuma."
-
-6. **Print summary:**
-   ```
-   Deployment summary
-   ──────────────────
-   URL:          [url]
-   Health:       PASS / FAIL
-   Notification: sent / not sent
-   Monitoring:   configured / not configured
-   Logged:       yes
-   ```
+1. Read current from `project:<slug>:deployment:<env>` and verify it matches the
+   deployment being checked. Inspect provider metadata for deployments made elsewhere;
+   use deploy-to-vercel's record contract without overwriting previousHealthy.
+2. Run health-check and the release's acceptance journey. Update current.healthStatus
+   only if its ID still matches. A later deployment must not inherit this result.
+3. Append ID, URL, commit, environment, timestamp and observed health to
+   `project:<slug>:deployment-log`, including failures. Never rotate previousHealthy
+   during this followup; deployment owns rotation. A failed release keeps its recovery target.
+4. Send outcome via send-notification. On failure, report failure and load rollback
+   only for a production incident; rollback still needs its own concrete approval.
+5. Read `project:<slug>:monitoring-config`; report missing monitoring or delivery
+   evidence explicitly. Print deployment identity, health, acceptance and notification result.
 
 ## Pitfalls
 
-- Health check PASS means the endpoint responded — not that the app has no bugs. Note this when reporting.
-- Do not skip this skill. It is the only thing that writes deployment history to memory.
+- HTTP health alone does not prove user journeys work.
+- A failed deployment must not be recorded as healthy or replace the recovery target.
 
 ## Verification
 
-- Deployment in Hermes memory under `deployment-log`
-- Slack notification delivered (or failure explained)
-- Health status confirmed
-- Monitoring status noted
+Matching current record and deployment history contain observed results, acceptance
+checks are attached, and notification delivery or failure is reported.

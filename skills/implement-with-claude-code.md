@@ -1,84 +1,87 @@
 ---
 name: implement-with-claude-code
 description: Use when choose-engine has routed to Claude Code for complex multi-file implementation
-version: 1.0.0
+version: 1.0.1
 tags: [implementation, claude-code, coding]
 ---
 
-## Overview
-
-Composes a handoff prompt from Hermes memory and project context. Claude Code has no access to Hermes memory — context must be explicitly passed.
-
 ## When to Use
 
-- `choose-engine` routed the task here
-- Task spans 3+ files or involves unknown architectural decisions
-- Building from scratch, major refactor, or writing a test suite
+choose-engine routed this task to Claude Code. Preserve docs/engines.md routing defaults.
 
 ## Prerequisites
 
-- Claude Code installed (`npm install -g @anthropic-ai/claude-code`)
-- Project has `AGENTS.md` (run `bootstrap.sh` if missing)
-- Task description available
+- Authenticated installed CLI; Python 3 for a portable process deadline.
+- Trusted project directory, AGENTS.md, selected slug and specific acceptance criteria.
+- Inspect `claude --help` and CLI version without making a model call. Verify every
+  flag below exists in that installed version; if not, stop with the capability
+  mismatch rather than silently invoking interactive mode or removing safeguards.
 
 ## Procedure
 
-1. Retrieve from Hermes memory:
-   - `product-brief-[project-name]` (if exists)
-   - `implementation-spec-[feature-name]` (if design handoff done)
-   - `requirements-[project-name]` (if exists)
-   - Any architecture decisions or "avoid" notes
-
-2. Compose handoff prompt:
+1. Retrieve only relevant non-secret project memory using `project:<slug>:<key>`,
+   including requirements, product brief, design and implementation spec.
+   Write a self-contained prompt to an owner-only file outside tracked source.
+   Include task, allowed paths, acceptance checks and expected artifacts; require
+   reading AGENTS.md, preserving unrelated work, and never pushing/deploying or
+   disclosing credentials. Record the starting HEAD and working-tree diff.
+2. Use the existing Hermes terminal/tool permission boundary. Preconfigure narrowly
+   authorized tools for unattended editing in the trusted checkout; denied tools
+   are a blocked handoff, never permission to bypass approvals or sandboxing.
+   Run noninteractively with a deadline and owner-only artifacts. Example launch
+   from the verified project directory, with `handoff.txt` already prepared:
+   ```python
+   import json, os, pathlib, signal, subprocess, tempfile
+   os.umask(0o077)
+   project_dir = pathlib.Path.cwd().resolve()
+   run = pathlib.Path(tempfile.mkdtemp(prefix="omh-handoff-"))
+   # claude -p reads the prompt from stdin; its budget is a cap, not a spend target.
+   command = ["claude", "-p", "--output-format", "json", "--max-budget-usd", "5"]
+   with open("handoff.txt") as prompt, (run / "stdout").open("w") as out, (run / "stderr").open("w") as err:
+       proc = subprocess.Popen(command, cwd=project_dir, stdin=prompt,
+                               stdout=out, stderr=err, start_new_session=True)
+       timed_out = False
+       try:
+           returncode = proc.wait(timeout=900)
+       except subprocess.TimeoutExpired:
+           timed_out = True
+           os.killpg(proc.pid, signal.SIGTERM)
+           try:
+               proc.wait(timeout=10)
+           except subprocess.TimeoutExpired:
+               os.killpg(proc.pid, signal.SIGKILL)
+               proc.wait()
+           # A child may survive after the CLI leader exits.
+           try:
+               os.killpg(proc.pid, signal.SIGKILL)
+           except ProcessLookupError:
+               pass
+           returncode = 124
+   (run / "status.json").write_text(json.dumps({"returncode": returncode, "timed_out": timed_out}))
+   print(run)
+   raise SystemExit(returncode)
    ```
-   Context from project memory:
-   [paste relevant memory entries]
-
-   Task:
-   [specific description of what to implement]
-
-   Constraints:
-   - Read AGENTS.md before starting
-   - [stack requirements]
-   - [specific constraints from brief or requirements]
-
-   Expected output:
-   [what should exist when done]
-   ```
-
-3. Tell user: "Open Claude Code in the project directory: `claude`"
-4. Provide the exact prompt to paste (from step 2)
-5. After session: ask user to confirm expected output exists. Save to Hermes memory: `implementation-[feature-name]` → `completed by Claude Code on [date]`
-
-## Scope constraint
-
-Every changed file must trace directly to the task. Include in the handoff prompt:
-
-```
-Surgical scope:
-- Change only what the task requires. Do not refactor adjacent code.
-- Do not add features beyond what is specified.
-- Match existing code style — do not reformat.
-- Commit after every logical unit of work with a clear message.
-
-Never commit:
-- API keys, tokens, passwords, or credentials of any kind
-- .env files or any file matching *.env*
-- Connection strings with passwords embedded
-- Private keys or certificates
-Run `git diff --staged` and scan for secrets before every commit.
-If you see a key or credential, stop and tell the user immediately.
-```
+   Keep raw artifacts private; do not paste stdout/stderr or credentials into memory
+   or notifications. A timeout/nonzero exit is failure, even if some files changed.
+3. Inspect the artifact and diff; parse stdout JSON and reject is_error or an incomplete result.
+   Run independent acceptance tests, build/type checks appropriate to the actual
+   stack, and verify requested behavior. CLI success and its narrative are not proof.
+4. Review changed paths and staged diff for secrets and unrelated changes. Commit
+   only the reviewed scoped result when authorized by project conventions. Record
+   commit, artifact location, exit status and independent evidence in
+   `project:<slug>:implementation-[feature-name]` and the existing Hermes task.
+   On failure attach a sanitized summary and mark blocked; do not ask the founder
+   to paste the handoff manually or claim completion from a confirmation alone.
 
 ## Pitfalls
 
-- Always include "Read AGENTS.md before starting" — Claude Code follows this.
-- Include full memory context in the prompt. Claude Code cannot access Hermes memory.
-- Be specific: "Add Stripe billing — monthly/annual plans, store subscription status in Supabase users table" not "add billing."
+- Engine context does not include Hermes memory; explicitly pass relevant context.
+- Authentication can be subscription or API-key based; do not print credentials.
+- Noninteractive permission failures require configuration or a narrower task.
 
 ## Verification
 
-- User confirms expected output exists
-- All changed files trace directly to the task — no unrelated edits
-- No secrets in committed files
-- Outcome saved to Hermes memory
+Bounded invocation exited zero, a result artifact exists, independent acceptance
+checks pass, and the reviewed diff is scoped and credential-free.
+
+Reference: [Claude Code noninteractive execution](https://code.claude.com/docs/en/headless).

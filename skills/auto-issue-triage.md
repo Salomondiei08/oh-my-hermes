@@ -1,7 +1,7 @@
 ---
 name: auto-issue-triage
-description: Use when running on a cron schedule to automatically find, score, and pick the highest-priority GitHub issue to work on next
-version: 1.0.0
+description: Use when a configured repository needs an hourly issue review that supports the active product outcome without turning issue volume into the roadmap
+version: 2.0.1
 tags: [github, issues, triage, cron, autonomous]
 metadata:
   hermes:
@@ -11,7 +11,9 @@ metadata:
 
 ## Overview
 
-Automated triage pass. Scores every open issue, picks the top priority, creates a kanban card, and routes to the dev loop. Runs unattended on an hourly cron schedule.
+Automated supporting triage. It reviews actionable issues against the active
+product outcome, creates a kanban task when one clearly advances it, and stays
+silent when nothing should change.
 
 ## When to Use
 
@@ -22,7 +24,7 @@ Automated triage pass. Scores every open issue, picks the top priority, creates 
 ## Prerequisites
 
 - GitHub CLI authenticated: `echo "$GITHUB_TOKEN" | gh auth login --with-token`
-- Hermes memory has `github-repo` key set (owner/repo format)
+- Hermes memory has `project:<slug>:github-repo` key set (owner/repo format)
 - `GITHUB_USERNAME` set in environment (your GitHub username — Hermes self-assigns issues)
 - Cron configured (see Setup below)
 
@@ -45,7 +47,7 @@ hermes cron list
 ## Procedure
 
 1. **Cost guard — check last run time:**
-   Retrieve `triage-last-run` from Hermes memory. If it was less than 45 minutes ago, skip this run and log: `{ skippedAt, reason: "too-soon" }`. This prevents runaway token consumption if the cron fires unexpectedly.
+   Retrieve `project:<slug>:triage-last-run` from Hermes memory. If it was less than 45 minutes ago, skip this run and log: `{ skippedAt, reason: "too-soon" }`. This prevents runaway token consumption if the cron fires unexpectedly.
 
 2. **Fetch open issues:**
    ```bash
@@ -64,40 +66,46 @@ hermes cron list
    - Already assigned or labeled `in-progress`: skip
    - Labeled `wontfix`, `blocked`, `needs-design`: skip
 
-4. **Pick top-scoring issue.** Tie → pick older one.
+4. **Check product fit.** Read `PRODUCT_BRIEF.md`, active kanban work, and current
+   product goal. Skip an issue that scores highly but conflicts with the active
+   outcome. Record it for the Product Agent instead of starting it.
 
-5. **Check if a task is already in progress:**
-   - Retrieve `current-task` from Hermes memory
+5. **Pick the best aligned issue.** Tie → pick the issue with clearer user
+   impact, then the older issue.
+
+6. **Check if a task is already in progress:**
+   - Retrieve `project:<slug>:current-task` from Hermes memory
    - Already in progress and not blocked → skip, send quick status update
    - Blocked or stalled > 4 hours → escalate via `send-notification`
 
-6. **Create kanban card** via `kanban-task`:
+7. **Create kanban card** via `kanban-task`:
    ```
    kanban_create title="[issue title]" assignee="dev" body="Issue #[n] | Score: [n] | [why in one line] | Acceptance: [2-4 verifiable checks]"
    ```
-   Save task ID to memory: `task-id-issue-[n]`.
+   Save task ID to memory: `project:<slug>:task-id-issue-[n]`.
 
-7. **Assign and label on GitHub:**
+8. **Assign and label on GitHub:**
    ```bash
    gh issue edit [number] --add-label "in-progress" --add-assignee "$GITHUB_USERNAME"
    ```
 
-8. **Save to memory:** key `current-task` → `{ issueNumber, taskId, title, assignedAt }`. Also update `triage-last-run` → current ISO timestamp.
+9. **Save to memory:** key `project:<slug>:current-task` → `{ issueNumber, taskId, title, assignedAt }`. Also update `project:<slug>:triage-last-run` → current ISO timestamp.
 
-9. **Spawn Dev Agent** (or load `choose-engine` directly) with the issue title and body.
+10. **Spawn Product Agent** when acceptance criteria are missing; otherwise hand
+    the ready task to Builder.
 
-10. **If no actionable issues:**
-   - `send-notification`: "No open issues. All caught up."
-   - Log to memory: `{ checkedAt, status: "idle" }`
+11. **If no aligned actionable issues:** update `project:<slug>:triage-last-run` and stay silent.
 
 ## Pitfalls
 
-- Never start two tasks in parallel. Always check `current-task` memory first.
-- Vague issue body → do not guess. Ask founder via `send-notification` before starting.
+- Never start two tasks in parallel. Always check `project:<slug>:current-task` memory first.
+- Vague issue body → Product Agent infers acceptance criteria and assumptions.
+  Ask the founder only when a material irreversible decision remains.
+- Do not start an issue merely because it has the highest numerical score.
 - Cron sessions cannot create more cron jobs — do not try to schedule inside this skill.
 
 ## Verification
 
 - Kanban card created and visible in `hermes kanban list`
-- `current-task` in Hermes memory
+- `project:<slug>:current-task` in Hermes memory
 - Issue labeled `in-progress` on GitHub

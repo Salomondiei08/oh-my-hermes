@@ -1,335 +1,200 @@
-<img src="banner.png" alt="Oh My Hermes" width="100%" />
+<img src="banner.png" alt="OMH — Oh My Hermes" width="100%" />
 
 # OMH — Oh My Hermes
 
 [![Stars](https://img.shields.io/github/stars/salomondiei08/oh-my-hermes?style=flat-square)](https://github.com/salomondiei08/oh-my-hermes/stargazers)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
-[![Hermes](https://img.shields.io/badge/Hermes-v0.13%2B-orange?style=flat-square)](https://hermes-agent.nousresearch.com)
-[![Skills](https://img.shields.io/badge/skills-24-brightgreen?style=flat-square)](#skills)
-[![Agents](https://img.shields.io/badge/agents-6-blue?style=flat-square)](#agents)
+[![Hermes](https://img.shields.io/badge/Hermes-v0.19%2B-orange?style=flat-square)](https://hermes-agent.nousresearch.com)
+[![Skills](https://img.shields.io/badge/skills-39-brightgreen?style=flat-square)](#skills)
+[![Agents](https://img.shields.io/badge/agents-7-blue?style=flat-square)](#agents)
 
-**An opinionated workflow layer for building, shipping, and operating apps — delivered directly to Hermes.**
+**A workflow pack for Hermes Agent: 39 skills, 7 role definitions, and 6 workflows.**
 
-Like Oh My Zsh is to Zsh. You install it once and Hermes becomes genuinely useful for real software projects. Not a chatbot wrapper. Not a prompt pack. A curated set of skills that Hermes loads and runs autonomously — on your VPS, on your laptop, wherever Hermes lives.
-
-> **AI agent?** See [INSTALL_FOR_AGENTS.md](INSTALL_FOR_AGENTS.md) for the one-command install protocol.
+Like Oh My Zsh is to Zsh. Hermes has the primitives: memory, kanban, cron, profiles, subagents. Oh My Hermes wires them into a real product-building loop — from idea through design, build, review, deploy, and monitoring — with you in control of the irreversible decisions.
 
 ---
 
-## Using with an AI agent
-
-If you work with Claude, Cursor, Copilot, or any coding assistant, follow the agent install protocol:
-
-[INSTALL_FOR_AGENTS.md](INSTALL_FOR_AGENTS.md)
-
-The file contains exact commands your agent can copy and run — prerequisites check, install, verify, bootstrap, and CTO loop setup.
-
----
-
-## The core idea
-
-Hermes is the operator. It talks to you. It remembers. It builds. It deploys. It monitors. It notifies.
-
-You describe what you want in plain language — on Telegram, Slack, Discord, your terminal, wherever you have Hermes configured. Hermes loads the right skill and runs the workflow. Claude Code and Codex are optional engines Hermes can invoke when a task needs deep file editing — but Hermes handles the orchestration, the ops, the memory, and the lifecycle on its own.
-
-**Hermes does not need Claude Code or Codex to be useful.** Those are optional. Hermes itself has a terminal backend and can write, edit, and run code directly.
-
----
-
-## How it all fits together
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        YOU (founder)                            │
-│         Telegram · Slack · Discord · WhatsApp · terminal        │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │  plain-language messages
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                   HERMES  (VPS / local, 24/7)                   │
-│                                                                 │
-│  ┌──────────┐   routes to   ┌─────────────────────────────────┐ │
-│  │ Gateway  │ ────────────▶ │        CTO Agent                │ │
-│  │(Telegram │               │  monitors kanban, orchestrates  │ │
-│  │ /Slack…) │               └───────────┬─────────────────────┘ │
-│  └──────────┘                           │  spawns sub-agents    │
-│                      ┌──────────────────┼──────────────┐        │
-│                      ▼                  ▼              ▼        │
-│               ┌────────────┐  ┌──────────────┐  ┌──────────┐   │
-│               │  PM · Dev  │  │ QA · Security│  │   Ops    │   │
-│               │ triage     │  │ review · scan│  │ deploy   │   │
-│               │ implement  │  │ approve      │  │ monitor  │   │
-│               └─────┬──────┘  └──────┬───────┘  └────┬─────┘   │
-│                     │                │               │          │
-│              ┌──────▼────────────────▼───────────────▼──────┐   │
-│              │              Hermes Kanban                    │   │
-│              │   Triage → Ready → Running → Blocked/Done     │   │
-│              └───────────────────────────────────────────────┘   │
-│                                                                 │
-│  Persistent memory · 23 skills · 5 workflows · cron jobs        │
-└──────┬──────────────────────────────────────────────────────────┘
-       │
-       ├──▶  Claude Code  (complex multi-file coding)
-       ├──▶  Codex        (quick single-file fixes)
-       ├──▶  Vercel       (hosting + preview URLs)
-       ├──▶  Supabase     (database + auth + migrations)
-       ├──▶  GitHub       (issues, PRs, merge)
-       └──▶  Sentry / Uptime Kuma  (monitoring)
-```
-
----
-
-## Full project lifecycle
-
-From idea to running production app, Hermes handles each stage:
-
-```
-IDEA
-  ↓  onboarding            ← Bot asks everything in chat, configures the loop
-  ↓  clarify-requirements  ← Hermes asks 7 questions, saves answers to memory
-  ↓  product-brief         ← Writes PRODUCT_BRIEF.md from requirements
-  ↓  design-handoff        ← Converts your design notes to an implementation spec
-  ↓  choose-engine         ← Decides: Hermes / Claude Code / Codex
-  ↓  implement             ← Builds it — surgical changes, no secrets committed
-  ↓  deploy-to-vercel      ← Pre-deploy checks → deploy → captures URL
-  ↓  connect-supabase      ← Links DB, pushes migrations, sets env vars
-  ↓  setup-monitoring      ← Sentry + Uptime Kuma
-  ↓  post-deploy-followup  ← Health check → log → notify you
-  ↓
-RUNNING APP
-  ↓  auto-issue-triage     ← Every hour: scores issues, picks top priority
-  ↓  implement + PR        ← Dev Agent builds, Security Agent reviews
-  ↓  await-merge-approval  ← Sends you YES/NO message
-  ↓  YOU reply YES         ← Merges, deploys, health-checks, confirms
-  ↓
-REPEAT — Hermes watches it, you approve changes
-```
-
----
-
-## The autonomous CTO loop
-
-Once configured, this runs every hour without you touching anything:
-
-```
-GitHub issue opens
-       ↓
-  PM Agent scores & triages  →  kanban: Ready, assignee=dev
-       ↓
-  Dev Agent implements  →  kanban: Running
-       ↓
-  Security Agent: secret scan + OWASP check + CVE check
-       ↓
-  QA Agent: build check + health check + plain-English summary
-       ↓
-  YOU get a message on Telegram:
-  ────────────────────────────────────────
-  PR #12 — Fix login redirect
-
-  What changed: Users who hadn't verified their email were
-  sent to a broken page. They now see "Check your inbox."
-
-  Build: passing  |  Preview: healthy (180ms)  |  No secrets found
-  Preview: https://myapp-fix-login.vercel.app
-
-  Reply YES to ship. Reply NO and tell me why.
-  ────────────────────────────────────────
-       ↓
-  YES → merges, deploys, health-checks, confirms live URL to you
-  NO  → Dev Agent iterates on your feedback
-```
-
----
-
-## Get started
-
-**Step 1 — Install Hermes Agent**
-
-Follow the [Hermes quickstart](https://hermes-agent.nousresearch.com/docs/getting-started/quickstart). At the end you have a bot you can message on Telegram (or Slack, Discord, WhatsApp).
-
-**Step 2 — Install Oh My Hermes**
+## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
+git clone https://github.com/salomondiei08/oh-my-hermes.git
+cd oh-my-hermes
+bash install.sh
 ```
 
-**Step 3 — Message your bot**
+Then tell your Hermes bot:
 
 ```
 set up the CTO loop
 ```
 
-The bot will ask for your GitHub repo, walk you through creating a token step by step, ask for your production URL, and configure everything. No terminal needed after Step 2.
+Hermes reads the project and asks at most three material questions. Configure and verify each profile’s model access and messaging before enabling unattended operation.
 
-**What you unlock at each step:**
+The installer requires Python 3.9+. Skill validation requires Ruby with its standard-library YAML parser. Re-running install updates unchanged owned files and preserves custom files; review `[PRESERVED]` messages. See [installation](docs/installation.md) for verification and upgrade checks.
+
+---
+
+## Use with a coding agent
+
+Paste this into Claude, Cursor, Copilot, or any coding assistant:
+
+```
+Install Oh My Hermes by running:
+git clone https://github.com/salomondiei08/oh-my-hermes.git
+cd oh-my-hermes
+bash install.sh
+
+Then read the full installation guide at:
+https://github.com/salomondiei08/oh-my-hermes/blob/main/INSTALL_FOR_AGENTS.md
+
+And follow the instructions there.
+```
+
+---
+
+## The loop
+
+```
+Understand → Design → Build → Check → Ship → Learn
+```
+
+The CTO coordinates seven agents through Hermes Kanban. Work starts from an idea, customer feedback, production logs, or a GitHub issue — not from a fixed PR workflow.
+
+```
+Founder
+  │
+  └── CTO  ← lifecycle, roadmap, delegation, decisions
+        │
+        ├── Product     brief, priorities, SEO, content
+        ├── Designer    UX, visual verification, launch media
+        ├── Builder     working product increments
+        ├── Reviewer    journeys, visual checks, PR review
+        ├── Security    release risk, daily/weekly assessment
+        └── Ops         deploy, health, logs, incidents
+```
+
+Hermes runs on your VPS or laptop. You interact from your phone via Telegram, Slack, Discord, or WhatsApp.
+
+---
+
+## Quick start
 
 | Step | What to do | What you get |
 |---|---|---|
 | 1 | Install Hermes + connect Telegram | A bot you can message |
-| 2 | Run install.sh | 23 skills and 5 workflows loaded |
-| 3 | Message: "set up the CTO loop" | Bot guides the full setup in chat |
-| 4 | Bot asks for GitHub token | Issues monitored, PRs managed |
-| 5 | Bot asks for production URL | Health checks every 15 min |
-| 6 | `/goal` command | Agent stays focused across long sessions |
-| — | Autonomous from here | Hourly triage, daily report, weekly security scan |
+| 2 | Run `install.sh` | 39 skills and 6 workflows loaded |
+| 3 | Message: "set up the CTO loop" | Bot sets up profiles, kanban, and crons in chat |
+| 4 | Connect GitHub when useful | Issue triage and PR delivery enabled |
+| 5 | Add production URL after first deploy | Health checks and log observation enabled |
+| 6 | `/goal Build and ship [product]` | Agent stays focused across long sessions |
+| — | Autonomous from here | Daily reports, health checks, security, log observation |
 
 ---
 
 ## Skills
 
+### Product
+
 | Skill | What Hermes does |
 |---|---|
-| `onboarding` | Guides full setup in chat — no terminal, no manual config |
-| `clarify-requirements` | Asks 7 structured questions, saves answers to memory |
-| `product-brief` | Generates a product brief, writes PRODUCT_BRIEF.md |
-| `design-handoff` | Converts design notes to an implementation spec |
-| `create-skill` | Creates a new skill in the correct format (meta-skill) |
+| `onboarding` | Infers setup, asks at most three questions, avoids duplicate crons |
+| `clarify-requirements` | Reads first, asks only material questions, continues with defaults |
+| `product-brief` | Writes the compact source of truth and acceptance criteria |
+| `design-handoff` | Designer creates `DESIGN.md` and verifies implemented UI |
+| `product-marketing` | Positioning, website copy, SEO, launch strategy, content schedule |
+| `creative-production` | Product assets and HyperFrames launch video with licensed music evidence |
+| `computer-use` | Operates native/authenticated GUI only when simpler tools cannot |
+
+### Build
+
+| Skill | What Hermes does |
+|---|---|
 | `choose-engine` | Routes tasks to Hermes, Claude Code, or Codex |
 | `implement-with-claude-code` | Scaffolds Claude Code with full context + scope constraints |
 | `implement-with-codex` | Scaffolds Codex for targeted single-file fixes |
+| `create-skill` | Creates a new skill in the correct format (meta-skill) |
+| `learn-skill` | Distills a session, URL, or directory into a reusable slash command (v0.18+) |
+
+### Deliver
+
+| Skill | What Hermes does |
+|---|---|
 | `deploy-to-vercel` | Pre-deploy checks → deploy → capture URL |
 | `connect-supabase` | Links Supabase, pushes migrations, sets Vercel env vars |
 | `setup-monitoring` | Configures Sentry + Uptime Kuma |
-| `health-check` | Calls `/api/health`, validates response, checks Supabase + Vercel logs |
-| `send-notification` | Sends Slack webhook with deployment or status info |
+| `health-check` | Three-layer check: app endpoint, Supabase connection, Vercel logs |
 | `post-deploy-followup` | Health check + deployment log + notification + summary |
-| `manage-github-issues` | Triage, create, label, assign, and close GitHub issues |
+| `rollback` | Rolls back Vercel production after health failure — requires founder YES |
+
+### Operate
+
+| Skill | What Hermes does |
+|---|---|
+| `observe-logs` | Deduplicates runtime errors, escalates only actionable changes |
+| `send-notification` | Gateway-first founder messaging with durable delivery (v0.19+) |
+| `cto-status-report` | Daily morning report: shipped, in progress, blocked |
+| `backup-hermes-data` | Creates private SQLite-safe snapshots and rehearses isolated recovery |
+| `failure-recovery` | Saves failed cron/agent context to dead-letter logs and alerts |
+| `reset-runtime` | Backs up and clears stale Hermes state without deleting credentials |
+| `server-bootstrap` | Sets up a fresh VPS with Hermes, Telegram, and the CTO loop |
+| `automation-blueprint` | Saves multi-step recurring tasks as named, parameterized blueprints |
+| `gateway-routing` | Routes Telegram chats, Discord channels, or Slack workspaces to specific profiles (v0.19+) |
+
+### GitHub
+
+| Skill | What Hermes does |
+|---|---|
+| `manage-github-issues` | Triage, create, label, assign, and close issues |
 | `create-github-pr` | Creates PR with secret scan before opening |
 | `auto-issue-triage` | Hourly: scores open issues, picks top priority, starts work |
-| `review-github-pr` | Reviews PR diff, runs checks, writes plain-English summary |
-| `security-review` | Secret scan + OWASP check + CVE audit + weekly supply chain |
-| `await-merge-approval` | Sends YES/NO message to founder, merges or iterates |
+| `review-github-pr` | Verifies the product increment, approves or requests changes |
+| `await-merge-approval` | Founder chooses YES, NO, CLOSE, or LATER — durably delivered |
+| `security-review` | Tool-backed release gate plus daily and weekly assessments |
+
+### Creative
+
+| Skill | What Hermes does |
+|---|---|
+| `generate-with-seedance` | Approved paid video shots through the Volcengine Ark API |
+| `publish-with-buffer` | Dry-runs and schedules approved posts through the Buffer CLI |
+
+### Project
+
+| Skill | What Hermes does |
+|---|---|
+| `project-switch` | Switches product context without mixing memory, crons, or approvals |
+| `project-status` | Founder-readable status: gateway, model, project, crons, integrations |
+| `ship-this-idea` | Runs the full idea → brief → design → build → verify → ship flow |
 | `kanban-task` | Creates and updates Hermes kanban cards at every stage |
-| `cto-status-report` | Daily morning report: what's in progress, done, blocked |
-| `backup-hermes-data` | Tarballs `~/.hermes/` to S3, Dropbox, or local |
-| `rollback` | Rolls back Vercel production to previous deploy after health check failure — requires founder YES |
 
 ---
 
 ## Agents
 
-Six agents, each with a specific role, kanban ownership, and clear scope. Role definitions live in `agents/`. Running `scripts/setup-cto.sh` (or messaging "set up the CTO loop") creates all six profiles and makes them active.
+Seven focused agents, seven Hermes profiles. Created by `setup-cto.sh` or by messaging "set up the CTO loop".
+
+| Agent | Profile | Owns |
+|---|---|---|
+| CTO | `cto` | Lifecycle, roadmap, delegation, founder communication |
+| Product | `pm` | Brief, priorities, positioning, SEO, content strategy |
+| Designer | `designer` | UX, visual verification, launch media |
+| Builder | `dev` | Working product increments and implementation evidence |
+| Reviewer | `qa` | User journeys, visual/accessibility checks, PR review |
+| Security | `security` | Release risk and recurring security assessment |
+| Ops | `ops` | Deployments, health, logs, incidents, rollback proposals |
 
 ---
 
-### CTO — Chief Technology Officer
+## Workflows
 
-The main Hermes session. Owns all kanban columns. Delegates work to sub-agents, monitors progress, and is the only one who talks to you.
-
-**What triggers it:** Every hour via cron, or when you send a message.
-
-**What it does:**
-- Watches the kanban continuously (`hermes kanban watch`)
-- Spawns PM, Dev, Security, QA, or Ops sub-agents as needed
-- Sends you a daily morning report (what shipped, what's stuck, what needs your input)
-- Escalates to you only when a human decision is needed — health check failure, task blocked twice, secret found in a diff, scope change
-- Makes the call when two sub-agents conflict
-
-**What it does NOT do:** Write code, merge PRs, or deploy anything directly.
-
----
-
-### PM — Product Manager
-
-Owns triage and ready work. Converts raw GitHub issues into implementation-ready kanban cards assigned to `dev`.
-
-**What triggers it:** When new issues appear on GitHub or when the CTO spawns it for triage.
-
-**What it does:**
-- Reads open GitHub issues and scores them by impact and urgency (bug labels, comment activity, age, priority labels)
-- Writes kanban tickets with: a verb-based title, the business reason in one sentence, 2-4 testable acceptance criteria, and the linked issue number
-- Flags issues that are too vague — asks you for clarification rather than guessing
-- Pings you after 24h if a blocked or approval-waiting card has gone stale
-
-**What it does NOT do:** Implement anything, merge PRs, make architecture decisions, or guess at unclear requirements.
-
----
-
-### Dev — Software Developer
-
-Owns running implementation work. Claims the top ready kanban ticket and builds it.
-
-**What triggers it:** When the PM Agent creates a ready card assigned to `dev` and the dispatcher starts work.
-
-**What it does:**
-- Claims the highest-priority ready ticket assigned to `dev`
-- Chooses the right engine for the task: Hermes terminal for ops/config, Codex for single-file bug fixes, Claude Code for multi-file features
-- Implements the change, commits after every logical unit of work
-- Never commits `.env` files, API keys, tokens, or credentials — scans `git diff --staged` before every commit
-- Creates a PR with a description drawn from memory and ticket context
-- Completes the implementation task with PR summary and metadata for Security/QA handoff
-
-**What it does NOT do:** Merge PRs, deploy to production, start a second ticket while one is in progress, or make product decisions.
-
----
-
-### Security — Security Analyst
-
-Sits between Dev and QA on every PR. Runs weekly supply chain checks.
-
-**What triggers it:** Every time Dev creates a PR; Monday 9am cron for supply chain.
-
-**What it does on every PR:**
-- Scans the diff for hardcoded secrets (API keys, tokens, passwords, service role keys)
-- Flags dangerous patterns: `eval()`, raw SQL string concatenation, `dangerouslySetInnerHTML` without sanitization, `process.env` values logged to console
-- Checks for CVEs with `npm audit` / `pip-audit` — only when `package.json` or `requirements.txt` changed
-- Reviews auth flows and Supabase RLS policies when auth files are touched
-- OWASP Top 10 diff scan: broken access control, injection, weak crypto, missing auth, secrets in logs
-
-**What it does on Mondays:**
-- Lists all direct dependencies and their publishers
-- Flags publishers that changed in the last 30 days (account takeover risk)
-- Flags near-matches of popular package names (typosquatting)
-- Sends you a plain-English report: packages reviewed, flags, action required
-
-**Severity table:**
-
-| Level | Action |
+| Workflow | What it does |
 |---|---|
-| Critical | Block merge. Alert you immediately via Telegram. |
-| High | Block merge. Comment on PR with fix instructions for Dev. |
-| Medium | Comment on PR. Fix before next sprint. Does not block. |
-| Low | Log to memory. Include in weekly report. |
-
-**What it does NOT do:** Write code fixes (sends feedback to Dev instead), run SAST, pen tests, exploit simulations, or forensics. Does not run scans outside PR review and the weekly window.
-
----
-
-### QA — Quality Assurance
-
-Owns product verification before a PR reaches you.
-
-**What triggers it:** When the Security Agent passes a PR and hands off for QA.
-
-**What it does:**
-- Reviews the PR diff for scope creep, leftover TODOs, and missing env vars in `.env.example`
-- Runs `gh pr checks` to verify the build passes
-- Runs a health check on the Vercel preview URL — HTTP 200, `status: ok`, under 3000ms
-- Verifies the changes actually match the acceptance criteria on the ticket
-- Writes a plain-English founder summary: what the user experiences differently, which functions changed (not filenames), build status, response time, preview link
-- Sends back to Dev with specific feedback if anything fails
-
-**What it does NOT do:** Merge PRs, implement fixes, or approve without running the health check.
-
----
-
-### Ops — Operations
-
-Owns Done + active monitoring. Handles everything infrastructure.
-
-**What triggers it:** After QA approval, and on a 15-minute health-check cron.
-
-**What it does:**
-- Deploys to Vercel (production and preview)
-- Runs a three-layer health check after every deploy: app endpoint (`/api/health`), Supabase connection, Vercel logs scan
-- Monitors production every 15 minutes — checks HTTP status, response time, Supabase query latency, log errors
-- Pulls and scans Vercel logs hourly for 500s, crashes, and auth anomalies
-- Sends you a Slack/Telegram notification after every deploy and on any incident
-- On incident: retries once after 60 seconds, identifies which layer failed, pulls logs for context, alerts you in plain language — never pastes raw logs or stack traces
-- Offers to roll back if the last deploy was less than 2 hours ago; confirms with you before doing it
-- Holds all DB-touching operations during active Supabase incidents and resumes when the status page clears
-
-**What it does NOT do:** Write or edit application code, triage issues, manage PRs, or roll back without telling you first.
+| `cto-loop` | Full product lifecycle — Understand, Design, Build, Check, Ship, Learn |
+| `idea-to-deploy` | From minimal clarification to a deployed, monitored product |
+| `ship-this-idea` | One founder sentence → brief, build, verify, deploy |
+| `design-to-code` | Designer defines and verifies; Builder implements |
+| `deploy-and-monitor` | Deploy → health check → log observation → notify |
+| `github-ops` | Issue triage, PR review, and merge flow |
 
 ---
 
@@ -338,87 +203,109 @@ Owns Done + active monitoring. Handles everything infrastructure.
 **Start a new project:**
 ```
 you: start a new app
-hermes: What problem does this solve? Who experiences it?
-you: [answer]
-hermes: [6 more questions…]
-hermes: Requirements saved. Generating product brief…
-hermes: Brief written to PRODUCT_BRIEF.md. Ready to implement or do design first?
+hermes: Found stack and existing context. Two choices that materially affect V1,
+        with recommended defaults. Skip them and I'll continue with defaults.
+you: use the defaults
+hermes: PRODUCT_BRIEF.md and DESIGN.md are ready. Starting the first build increment.
 ```
 
-**Deploy after implementing:**
+**Deploy:**
 ```
 you: deploy this to Vercel
 hermes: Running pre-deploy checklist…
-hermes: Deploying… done. URL: https://myapp.vercel.app
-hermes: Health check: PASS (200ms)
-hermes: Notification sent to Slack.
+hermes: Deployed. URL: https://myapp.vercel.app
+hermes: Health check: PASS (200ms). Notification sent.
 ```
 
 **Quick fix:**
 ```
 you: fix the auth redirect bug in src/middleware.ts
-hermes: Loading context… routing to Codex (single-file fix)
-hermes: Done. Typecheck passes. Creating PR…
-hermes: PR #14 ready — reply YES to ship.
+hermes: Routing to Codex (single-file fix)…
+hermes: Done. Typecheck passes. PR created.
+hermes: Preview healthy. Reply YES for this reviewed commit to ship, NO with feedback, CLOSE, or LATER.
 ```
 
-**Steer mid-session (Hermes v0.13+):**
+**Stacked skills (v0.19+):**
 ```
-you: /steer prioritize the payment bug above everything else
-hermes: Understood. Switching Dev Agent to issue #38.
+you: /clarify-requirements /product-brief build a dashboard for active users
+hermes: [runs both skills in sequence without a round-trip]
 ```
-
----
-
-## Default stack
-
-| Layer | Default | Alternative |
-|---|---|---|
-| Frontend / full-stack | Vercel | Railway, Render |
-| Database | Supabase PostgreSQL | PlanetScale, Neon |
-| Auth | Supabase Auth | Clerk, Auth.js |
-| Error tracking | Sentry | LogRocket |
-| Uptime monitoring | Uptime Kuma | Better Uptime |
-| Notifications | Slack webhook | Telegram, Email |
-
-All pluggable. Each skill documents how to substitute.
 
 ---
 
 ## Running on a VPS
 
-The intended setup for production use — Hermes runs 24/7, crons fire automatically, you interact from your phone:
+Intended for production — Hermes runs 24/7, crons fire automatically, you interact from your phone:
 
 ```bash
-# On a $5/month VPS (Ubuntu 22.04+)
+# $5/month VPS (Ubuntu 22.04+)
 curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash
-hermes model        # choose your provider (Anthropic, OpenAI, etc.)
+hermes setup     # full configuration wizard (v0.19+)
 hermes gateway setup && hermes gateway start   # connect Telegram or Slack
 
-# Then install Oh My Hermes
-curl -fsSL https://raw.githubusercontent.com/salomondiei08/oh-my-hermes/main/install.sh | bash
+# Install Oh My Hermes
+git clone https://github.com/salomondiei08/oh-my-hermes.git
+cd oh-my-hermes
+bash install.sh
 
 # Message your bot: "set up the CTO loop"
 ```
 
-For Docker:
+For a completely fresh server:
 ```bash
-docker run -d --restart=always \
-  -v hermes-data:/root/.hermes \
-  nousresearch/hermes-agent
+bash ~/.hermes/scripts/server-bootstrap.sh --project myapp --repo owner/repo --telegram
 ```
 
 ---
 
-## Installation scripts
+## Optional credentials — only when needed
+
+Oh My Hermes does not ask for every service during onboarding. Credentials are stored in `~/.hermes/.env` with user-only permissions and requested at first use:
+
+```bash
+bash ~/.hermes/scripts/setup-integrations.sh --check      # see what is and isn't configured
+bash ~/.hermes/scripts/setup-integrations.sh --buffer     # configure Buffer
+bash ~/.hermes/scripts/setup-integrations.sh --seedance   # configure Seedance
+bash ~/.hermes/scripts/setup-integrations.sh --openai     # configure OpenAI
+```
+
+If you use Bitwarden or 1Password, run `hermes secrets` to plug your vault in directly. Never paste credentials into chat.
+
+---
+
+## Scripts
 
 | Script | What it does |
 |---|---|
 | `install.sh` | Installs all skills, workflows, and agent definitions |
 | `scripts/bootstrap.sh` | Creates `AGENTS.md`, `.env.example`, health endpoint in a project |
 | `scripts/setup-cto.sh` | Creates profiles, initializes kanban, schedules crons |
-| `scripts/verify.sh` | Checks everything is installed correctly |
-| `scripts/uninstall.sh` | Removes all Oh My Hermes files from `~/.hermes/` |
+| `scripts/setup-integrations.sh` | Securely configures optional OpenAI, Buffer, and Seedance credentials |
+| `scripts/server-bootstrap.sh` | Fresh VPS setup: Hermes + Oh My Hermes + Telegram |
+| `scripts/project.sh` | Switches current product context |
+| `scripts/status.sh` | Prints founder-readable project and integration status |
+| `scripts/run-cron-safe.sh` | Records private failure metadata without persisting arguments or tool output |
+| `scripts/backup-runtime.py` | Creates a private archive with integrity-checked SQLite snapshots |
+| `scripts/reset-runtime.sh` | Backs up and clears stale sessions and state |
+| `scripts/ship-this-idea.sh` | Starts the full flagship build flow from one sentence |
+| `scripts/verify.sh` | Checks installed paths; `--setup` checks profile/runtime prerequisites |
+| `scripts/uninstall.sh` | Removes unchanged manifest-owned files; preserves profiles and custom files |
+
+---
+
+## Architecture
+
+```
+oh-my-hermes/
+├── skills/          ← 39 sources → ~/.hermes/skills/oh-my-hermes/<name>/SKILL.md
+├── workflows/       ← 6 workflow files → ~/.hermes/workflows/
+├── agents/          ← 7 agent role definitions → ~/.hermes/agents/
+├── templates/       ← AGENTS.md template, .env example, health endpoint
+├── scripts/         ← install, bootstrap, status, switch, reset, setup, verify
+└── docs/            ← Full documentation
+```
+
+See [docs/architecture.md](docs/architecture.md) for the memory key registry, approval boundary, and execution model.
 
 ---
 
@@ -436,38 +323,13 @@ Do not use `npm install -g gbrain` — a squatter package exists on npm under th
 
 ---
 
-## Architecture
-
-```
-oh-my-hermes/
-├── skills/          ← 23 skill files → ~/.hermes/skills/
-├── workflows/       ← 5 workflow files → ~/.hermes/workflows/
-├── agents/          ← 6 agent role definitions → ~/.hermes/agents/
-├── templates/       ← AGENTS.md template, .env example, health endpoint
-├── scripts/         ← install, bootstrap, verify, setup-cto, uninstall
-└── docs/            ← Full documentation
-```
-
-See [docs/architecture.md](docs/architecture.md) for detail.
-
----
-
 ## Roadmap
 
-**V1 — current**
-23 skills, 6 agents, 5 workflows, chat-guided onboarding, security agent, Karpathy code principles, one-command CTO setup, Vercel + Supabase + GitHub ops.
+**V1 — current:** 39 skills, 7 agents, 6 workflows. Optional-question onboarding, project switching, status, dead-letter recovery, product design, computer use policy, recurring security and log observation, creative launch production, fresh-server setup, Vercel + Supabase + GitHub delivery, automation blueprints, `/learn` skill distillation, multi-profile gateway routing.
 
-**V2 — planned**
-Rollback skill, staging → production promotion workflow, incident creation, post-deploy automated tests.
+**V2 — planned:** Staging-to-production promotion, broader provider adapters, post-deploy journey tests.
 
-**V3 — planned**
-Multi-service orchestration, more example apps, hosted setup wizard.
-
----
-
-## Star history
-
-[![Star History Chart](https://api.star-history.com/svg?repos=salomondiei08/oh-my-hermes&type=Date)](https://star-history.com/#salomondiei08/oh-my-hermes&Date)
+**V3 — planned:** Multi-service orchestration, more example apps, hosted setup wizard.
 
 ---
 

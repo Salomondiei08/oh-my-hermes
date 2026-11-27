@@ -1,115 +1,51 @@
-# Design Handoff Protocol
+# Design Contract
 
-## What this is
+The Designer Agent owns design discovery, the implementation contract, and
+rendered verification. External mockups, screenshots, and design-tool notes are
+optional inputs.
 
-Claude Design is a human-in-the-loop tool. There is no Claude Design API. You do the design work, then hand off results to Hermes using a structured protocol so Claude Code or Codex can implement from a clear spec.
+## When Design Is Needed
 
----
+- New user journey, page, navigation, or interaction
+- Material redesign or new visual direction
+- Responsive or accessibility behavior is unclear
+- Launch media needs art direction
 
-## When to do a design step
+Skip a separate design stage for backend-only changes and tiny visual fixes that
+already have clear acceptance criteria.
 
-Do a design step when:
-- Starting a new app with no UI/UX decisions made
-- Adding a major new surface (new page, new dashboard, new user flow)
-- Visual direction is unclear and you want to explore before committing
+## Minimal Process
 
-Skip it when:
-- The change is purely backend (API, database, auth)
-- The task is a bug fix or small targeted change
-- You already have a clear visual spec or mockup
+1. Read `PRODUCT_BRIEF.md`, the current UI, and existing design conventions.
+2. Infer the recommended direction.
+3. Ask at most three questions only if answers materially change the product.
+4. Continue with defaults when skipped.
+5. Write `DESIGN.md` with flow, hierarchy, states, responsive behavior,
+   accessibility, visual direction, and observable acceptance criteria.
+6. Give Builder only implementation-relevant guidance.
+7. Inspect the real implemented product at mobile and desktop viewports.
+8. Return concrete discrepancies and verify fixes.
 
----
+## Required States
 
-## Step 1 — Work in Claude Design
+When relevant, define and inspect:
 
-Open [claude.ai/design](https://claude.ai/design). Describe:
-- The user (who is using this?)
-- The goal (what are they trying to do?)
-- The context (what screen comes before? what after?)
-- Constraints (mobile-first, existing design system, etc.)
+- Loading
+- Empty
+- Error
+- Success
+- Disabled or permission-limited
+- Long text and large data
+- Narrow mobile and wide desktop
 
-Iterate until you have a direction you want to implement.
+## Launch Media
 
----
+After the product is real, Designer may run `creative-production` to create
+screenshots, diagrams, or a HyperFrames launch video. Product evidence comes
+first. Third-party music requires license records and founder approval.
 
-## Step 2 — Export the design output
+## Evidence
 
-There is no automated export. Copy the relevant output as text.
-
-Copy:
-- Component descriptions (what exists on screen, what it does)
-- Layout notes (arrangement, responsive behavior)
-- Interaction patterns (click, hover, form submit)
-- Data requirements (what data does each component need?)
-- Edge cases
-
-Skip:
-- Aesthetic rationale
-- Alternative directions you are not pursuing
-
-Paste into: `design-output.md` in your project root.
-
----
-
-## Step 3 — Run the design-handoff skill
-
-```
-tell hermes: I have a design output. Run design-handoff.
-```
-
-Hermes reads `design-output.md`, generates an implementation spec, saves it to memory as `implementation-spec-[feature-name]`, and routes to Claude Code or Codex.
-
-The spec format:
-
-```markdown
-# Implementation Spec: [Feature Name]
-
-## Components to build
-- ComponentName: description, props
-
-## Data requirements
-- What data each component needs, where it comes from
-
-## Routes / Pages
-- /path: what renders here
-
-## API endpoints needed
-- POST /api/path: request/response shape
-
-## Database changes needed
-- New tables, columns, indexes
-
-## Interactions to implement
-- Specific click handlers, form submissions
-
-## Edge cases to handle
-- Specific edge cases from the design
-
-## Implementation order
-1. Data layer
-2. API
-3. Components
-4. Integration
-```
-
----
-
-## Tips for better handoffs
-
-**Be specific.** "A card with user info" is vague. "A card showing username, avatar, and join date with a settings button linking to /settings" is implementable.
-
-**Add data sources.** Designers describe what is visible, not where data comes from. Add notes about data sources when copying design output.
-
-**Flag unknowns.** If a UI feature is unclear to implement, mark it `[UNKNOWN - research needed]`. Hermes will flag it in the spec.
-
-**One handoff per feature.** Do not combine unrelated features in one session.
-
----
-
-## Recalling the spec
-
-```
-tell hermes: show me the implementation spec for the dashboard feature
-```
-
-Hermes retrieves it from persistent memory.
+Design is complete when `DESIGN.md` exists, implementation criteria are mapped
+to Reviewer checks, and real rendered screenshots have been inspected. A prose
+description alone is not design verification.

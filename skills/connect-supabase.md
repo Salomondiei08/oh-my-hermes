@@ -1,73 +1,55 @@
 ---
 name: connect-supabase
 description: Use when a Supabase project needs to be linked to the app for the first time, or when new migrations need to be pushed
-version: 1.0.0
+version: 1.0.1
 tags: [supabase, database, setup, migrations]
 ---
 
-## Overview
-
-Links Supabase to the project, sets environment variables locally and in Vercel, pushes migrations.
-
 ## When to Use
 
-- First-time Supabase connection for this project
-- New migrations to push to the live database
-- Supabase env vars missing from Vercel
+Only when the project actually uses Supabase and needs linking or migrations.
 
 ## Prerequisites
 
-- Supabase account and project created at supabase.com
-- Supabase CLI: `npm install -g supabase`
-- Logged in: `supabase login`
-- Project ref from Supabase dashboard → Project Settings → General
+- Node.js 20+, npm and Supabase account/project; no global npm installation.
+- Install CLI as a pinned project dev dependency: `npm install --save-dev --save-exact supabase`.
+- Authenticated `npx supabase login`, intended project ref and securely available
+  database credentials. Inspect `npx supabase --version` and command `--help`.
 
 ## Procedure
 
-**Initial setup:**
-```bash
-supabase init                               # if not already initialized
-supabase link --project-ref [project-ref]
-```
-
-Add to `.env.local` (values from Supabase dashboard → Settings → API):
-```
-SUPABASE_URL=https://[ref].supabase.co
-SUPABASE_ANON_KEY=[anon-key]
-SUPABASE_SERVICE_KEY=[service-role-key]
-DATABASE_URL=postgresql://postgres:[password]@db.[ref].supabase.co:5432/postgres
-```
-
-Add vars to Vercel:
-```bash
-vercel env add SUPABASE_URL production
-vercel env add SUPABASE_ANON_KEY production
-vercel env add SUPABASE_SERVICE_KEY production
-vercel env add DATABASE_URL production
-```
-
-Push migrations:
-```bash
-supabase db push
-```
-
-Save to Hermes memory: key `supabase-config`, value `{ projectRef, url }`.
-
-**Adding new migrations:**
-```bash
-supabase migration new [migration-name]
-# edit the generated file
-supabase db push
-```
+1. Run `npx supabase init` only if uninitialized, then
+   `npx supabase link --project-ref <approved-project-ref>`. Verify the linked
+   remote is the intended project/environment before any database mutation.
+2. Add only variables this app uses to ignored owner-only `.env.local`, through
+   secure input. Public URL/anon key do not grant elevated access; service-role
+   key and DATABASE_URL stay server-only. Configure matching Vercel preview or
+   production variables only for an approved target; never print secret values.
+3. Create migrations with `npx supabase migration new <name>` and review SQL.
+   Run `npx supabase db push --dry-run` and inspect the exact pending migration
+   list. Test changes in a disposable/local database first. For destructive changes
+   get explicit founder approval identifying project, environment, migration files,
+   reviewed commit and recovery plan before pushing. Production changes require
+   the project's production approval gate even when additive.
+4. Only after the required approval, run `npx supabase db push` against the verified
+   linked project. Capture exit status without logging credentials.
+5. Verify hosted migration history with `npx supabase migration list --linked`:
+   expected migration timestamps must appear in both local and remote columns.
+   A matching list proves migration history, not schema correctness or RLS.
+   Independently check the affected application flow and permitted/denied RLS cases
+   with test identities. Save non-secret `{ projectRef, url, environment, commit,
+   migrations, evidence }` under `project:<slug>:supabase-config`.
 
 ## Pitfalls
 
-- `SUPABASE_SERVICE_KEY` has full DB access — never prefix with `NEXT_PUBLIC_` or expose to the client.
-- `supabase db push` is irreversible for destructive changes. Review migration files before running.
-- Always commit migration files to git — they are the schema source of truth.
+- Local status/diff does not verify hosted migrations.
+- Never expose service-role credentials or put passwords in command-line URLs.
+- History repair does not apply missing SQL; investigate discrepancies first.
 
 ## Verification
 
-- `supabase status` shows linked and correct project
-- All 4 env vars in `.env.local` and Vercel dashboard
-- `supabase db diff` shows no pending changes
+Hosted migration history matches reviewed migrations and the affected app/RLS
+journey passes. Record checks not performed and stop on any failed push.
+
+References: [CLI installation](https://supabase.com/docs/guides/local-development/cli/getting-started),
+[migration history](https://supabase.com/docs/reference/cli/supabase-migration-list).

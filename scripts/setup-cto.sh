@@ -1,12 +1,35 @@
 #!/usr/bin/env bash
-# setup-cto.sh — creates real Hermes profiles for each CTO loop agent,
+# setup-cto.sh — creates real Hermes profiles for each product-loop agent,
 # initializes the kanban board, authenticates GitHub CLI, and sets up crons.
 # Run once after install.sh. Safe to re-run (idempotent).
 
-set -e
+set -euo pipefail
 
-HERMES_DIR="$HOME/.hermes"
+export PATH="$HOME/.local/bin:$HOME/.hermes/hermes-agent/venv/bin:$PATH"
+
+HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
+export HERMES_HOME="$HERMES_DIR"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_SLUG="${PROJECT_SLUG:-$(bash "$SCRIPT_DIR/project.sh" current)}"
+# Validate metadata before creating profiles or scheduling work.
+project_args=(switch "$PROJECT_SLUG")
+[ -z "${GITHUB_REPO+x}" ] || project_args+=(--repo "$GITHUB_REPO")
+[ -z "${PRODUCTION_URL+x}" ] || project_args+=(--url "$PRODUCTION_URL")
+bash "$SCRIPT_DIR/project.sh" "${project_args[@]}"
+GITHUB_REPO="$(bash "$SCRIPT_DIR/project.sh" get GITHUB_REPO "$PROJECT_SLUG")"
+PRODUCTION_URL="$(bash "$SCRIPT_DIR/project.sh" get PRODUCTION_URL "$PROJECT_SLUG")"
+GITHUB_TOKEN="${GITHUB_TOKEN:-}"
+GITHUB_USERNAME="${GITHUB_USERNAME:-}"
+PROJECT_DIR="$(pwd -P)"
 AGENTS_DIR="$HERMES_DIR/agents"
+python3 - "$HERMES_DIR" <<'PROFILECHECK'
+from pathlib import Path
+import sys
+home = Path(sys.argv[1]).resolve()
+paths = [home / 'profiles', *(home / 'profiles' / name for name in ('cto', 'pm', 'designer', 'dev', 'qa', 'ops', 'security'))]
+if any(path.is_symlink() for path in paths):
+    sys.exit('[ERROR] Refusing symlinked profile directories before runtime mutation')
+PROFILECHECK
 
 PASS=0
 FAIL=0
@@ -16,6 +39,11 @@ ok()   { echo "  [OK]   $1"; PASS=$((PASS+1)); }
 fail() { echo "  [FAIL] $1"; FAIL=$((FAIL+1)); }
 warn() { echo "  [WARN] $1"; WARN=$((WARN+1)); }
 step() { echo ""; echo "── $1"; }
+
+# Robustly check profile existence — handles decorators (◆) in hermes output
+profile_exists() {
+  hermes profile list 2>/dev/null | awk 'NR>2 {print $1}' | sed 's/^◆//' | grep -Fxq "$1"
+}
 
 hermes_has_subcommand() {
   local group="$1"
@@ -50,7 +78,9 @@ if ! command -v hermes &>/dev/null; then
   echo "  curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash"
   exit 1
 fi
-ok "hermes: $(hermes --version 2>/dev/null || echo 'found')"
+HERMES_VERSION="$(hermes --version 2>/dev/null || true)"
+HERMES_VERSION="$(printf '%s\n' "$HERMES_VERSION" | sed -n '1p')"
+ok "hermes: ${HERMES_VERSION:-found}"
 
 PROFILE_CREATE_SUBCOMMAND=""
 if hermes_has_subcommand profile create; then
@@ -67,11 +97,24 @@ else
 fi
 require_hermes_subcommand profile use "hermes profile use supported"
 require_hermes_subcommand kanban list "hermes kanban list supported"
-require_hermes_subcommand kanban init "hermes kanban init supported"
-require_hermes_subcommand kanban watch "hermes kanban watch supported"
+
+
 require_hermes_subcommand cron list "hermes cron list supported"
 require_hermes_subcommand cron status "hermes cron status supported"
-require_hermes_subcommand cron add "hermes cron add supported"
+require_hermes_subcommand cron create "hermes cron create supported"
+require_hermes_subcommand cron edit "hermes cron edit supported (required for safe reconciliation)"
+require_hermes_subcommand cron pause "hermes cron pause supported"
+require_hermes_subcommand cron resume "hermes cron resume supported"
+
+if hermes_has_subcommand computer-use status; then
+  if hermes computer-use status &>/dev/null; then
+    ok "Hermes computer use ready"
+  else
+    warn "Computer use is optional and not ready — run: hermes computer-use install"
+  fi
+else
+  warn "Hermes computer-use command unavailable — update Hermes to enable CUA"
+fi
 
 if [ "$FAIL" -gt 0 ]; then
   echo ""
@@ -86,7 +129,7 @@ fi
 ok "~/.hermes/agents/ exists"
 
 MISSING_AGENTS=0
-for agent in cto pm dev qa ops security; do
+for agent in cto pm designer dev qa ops security; do
   if [ -f "$AGENTS_DIR/$agent.md" ]; then
     ok "agent definition: $agent.md"
   else
@@ -102,27 +145,24 @@ if [ "$MISSING_AGENTS" -gt 0 ]; then
 fi
 
 # ── 2. Create Hermes profiles ─────────────────────
-step "2. Creating Hermes profiles (cto, pm, dev, qa, ops)"
+step "2. Creating Hermes profiles (cto, pm, designer, dev, qa, security, ops)"
 
-for profile in cto pm dev qa ops security; do
-  if hermes profile list 2>/dev/null | grep -qw "$profile"; then
+for profile in cto pm designer dev qa ops security; do
+  if profile_exists "$profile"; then
     ok "profile '$profile' already exists"
   else
     case "$PROFILE_CREATE_SUBCOMMAND" in
       create|new)
-        CREATE_ARGS=()
-        if [ "$profile" = "security" ]; then
-          CREATE_ARGS+=(--no-alias)
-        fi
+        CREATE_ARGS=(--no-alias)
 
         if hermes profile "$PROFILE_CREATE_SUBCOMMAND" "$profile" "${CREATE_ARGS[@]}" 2>/dev/null; then
           ok "profile '$profile' created"
         else
-          warn "Could not create profile '$profile' — check: hermes profile --help"
+          fail "Could not create profile '$profile' — check: hermes profile --help"
         fi
         ;;
       *)
-        warn "Could not create profile '$profile' — no supported profile create command"
+        fail "Could not create profile '$profile' — no supported profile create command"
         ;;
     esac
   fi
@@ -131,18 +171,11 @@ done
 # ── 3. Inject agent roles into profiles ───────────
 step "3. Injecting agent role definitions into profiles"
 
-for agent in cto pm dev qa ops security; do
-  PROFILE_DIR="$HERMES_DIR/profiles/$agent"
-  AGENT_FILE="$AGENTS_DIR/$agent.md"
-
-  if [ -d "$PROFILE_DIR" ]; then
-    cp "$AGENT_FILE" "$PROFILE_DIR/agent-role.md"
-    ok "role injected: $agent"
+for agent in cto pm designer dev qa ops security; do
+  if python3 "$SCRIPT_DIR/configure-profile.py" "$HERMES_DIR" "$agent"; then
+    ok "loaded role and shared catalog configured: $agent"
   else
-    # Profiles may be created lazily — copy will happen on first use
-    warn "Profile dir ~/.hermes/profiles/$agent/ not created yet"
-    echo "         This is normal — it will be created when you first run:"
-    echo "         hermes profile use $agent"
+    fail "could not bind profile: $agent"
   fi
 done
 
@@ -227,86 +260,95 @@ fi
 # ── 7. Save config to memory ─────────────────────
 step "7. Saving config to Hermes memory"
 
-hermes_memory_set() {
-  local key="$1"
-  local value="$2"
-  # Try direct CLI first (cheaper, reliable); fall back to chat if not available
-  if hermes memory set "$key" "$value" &>/dev/null 2>&1; then
-    return 0
-  elif hermes chat -q "Save to memory: key=$key value=$value" --max-turns 2 &>/dev/null 2>&1; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-if [ -n "$GITHUB_REPO" ]; then
-  if hermes_memory_set "github-repo" "$GITHUB_REPO"; then
-    ok "github-repo saved to memory"
-  else
-    warn "Could not auto-save github-repo. Tell Hermes manually:"
-    echo "         'remember that github-repo is $GITHUB_REPO'"
-  fi
-fi
-
-if [ -n "$GITHUB_USERNAME" ]; then
-  if hermes_memory_set "github-username" "$GITHUB_USERNAME"; then
-    ok "github-username saved to memory"
-  else
-    warn "Could not auto-save github-username"
-  fi
-fi
+echo "[OK] Project metadata stored locally; agents load it with project.sh get."
+echo "     Setup does not launch a model to populate memory."
 
 # ── 8. Cron jobs ──────────────────────────────────
 step "8. Setting up cron jobs"
 
-CRON_FAIL=0
+
+ensure_cron() {
+  local name="$1"
+  local schedule="$2"
+  local prompt="$3"
+  local deliver="${4:-local}"
+  local cron_list
+  name="oh-my-hermes-$PROJECT_SLUG-${name#oh-my-hermes-}"
+  prompt="Project $PROJECT_SLUG; use only memory keys prefixed project:$PROJECT_SLUG:. $prompt"
+  if ! cron_list=$(hermes cron list --all 2>/dev/null); then
+    fail "cannot list cron jobs; refusing to create potential duplicates"
+    return 0
+  fi
+  if printf '%s\n' "$cron_list" | sed -E 's/^[[:space:]]*Name:[[:space:]]*//' | grep -Fxq "$name"; then
+    if hermes cron edit "$name" --schedule "$schedule" --prompt "$prompt" --deliver "$deliver" --workdir "$PROJECT_DIR" >/dev/null 2>&1; then
+      if hermes cron resume "$name" >/dev/null 2>&1; then
+        ok "cron reconciled: $name"
+      else
+        fail "cannot resume $name"
+      fi
+    else
+      fail "cannot reconcile $name; inspect hermes cron edit --help"
+    fi
+    return 0
+  fi
+  if hermes cron create --name "$name" --deliver "$deliver" --workdir "$PROJECT_DIR" "$schedule" "$prompt" >/dev/null 2>&1; then
+    ok "cron created: $name"
+  else
+    fail "cannot create $name; inspect hermes cron create --help"
+  fi
+}
+
+pause_cron() {
+  local name="oh-my-hermes-$PROJECT_SLUG-$1" listing
+  if ! listing=$(hermes cron list --all 2>/dev/null); then
+    fail "cannot inspect jobs for cleared target"
+    return 0
+  fi
+  if printf '%s\n' "$listing" | sed -E 's/^[[:space:]]*Name:[[:space:]]*//' | grep -Fxq "$name"; then
+    if hermes cron pause "$name" >/dev/null 2>&1; then ok "paused cleared target: $name"; else fail "cannot pause $name"; fi
+  fi
+}
 
 if [ -n "$PRODUCTION_URL" ]; then
-  if hermes cron add "*/15 * * * *" "Run health-check on $PRODUCTION_URL" 2>/dev/null; then
-    ok "cron: health check every 15 min → $PRODUCTION_URL"
-  else
-    warn "Could not add health check cron. Add manually:"
-    echo "         hermes cron add '*/15 * * * *' 'Run health-check on $PRODUCTION_URL'"
-    CRON_FAIL=1
-  fi
+  ensure_cron "oh-my-hermes-health" "*/15 * * * *" \
+    "Use failure-recovery for project ${PROJECT_SLUG:-default}: run health-check on $PRODUCTION_URL and save a dead letter if the check fails."
+  ensure_cron "oh-my-hermes-log-observer" "15 * * * *" \
+    "Use failure-recovery for project ${PROJECT_SLUG:-default}: run observe-logs for $PRODUCTION_URL. Deduplicate known events and notify only on new actionable High or Critical groups."
 else
-  warn "PRODUCTION_URL not set — skipping health check cron"
+  pause_cron health
+  pause_cron log-observer
+  warn "PRODUCTION_URL not set — health and log jobs paused/skipped"
   echo "         Set it and re-run, or add manually after deploy:"
   echo "         hermes cron add '*/15 * * * *' 'Run health-check on https://yourapp.vercel.app'"
 fi
 
 if [ -n "$GITHUB_REPO" ]; then
-  if hermes cron add "0 * * * *" "Run auto-issue-triage for $GITHUB_REPO" 2>/dev/null; then
-    ok "cron: issue triage every hour"
-  else
-    warn "Could not add triage cron. Add manually:"
-    echo "         hermes cron add '0 * * * *' 'Run auto-issue-triage for $GITHUB_REPO'"
-    CRON_FAIL=1
-  fi
+  ensure_cron "oh-my-hermes-product-review" "0 * * * *" \
+    "Use failure-recovery for project ${PROJECT_SLUG:-default}: review active product work and actionable GitHub issues for $GITHUB_REPO. Keep one product outcome active and do not treat issue volume as the roadmap."
 else
-  warn "GITHUB_REPO not set — skipping triage cron"
+  pause_cron product-review
+  pause_cron security-daily
+  pause_cron security-weekly
+  warn "GITHUB_REPO not set — repository jobs paused/skipped"
 fi
 
-if hermes cron add "0 9 * * *" "Send cto-status-report to founder" 2>/dev/null; then
-  ok "cron: daily status report at 9am"
-else
-  warn "Could not add status report cron. Add manually:"
-  echo "         hermes cron add '0 9 * * *' 'Send cto-status-report to founder'"
-  CRON_FAIL=1
-fi
+ensure_cron "oh-my-hermes-daily-report" "0 9 * * *" \
+  "Use failure-recovery for project ${PROJECT_SLUG:-default}: send cto-status-report to founder." \
+  "${OMH_NOTIFICATION_TARGET:-local}"
 
 if [ -n "$GITHUB_REPO" ]; then
-  if hermes cron add "0 9 * * 1" "Run security-review supply chain assessment for $GITHUB_REPO" 2>/dev/null; then
-    ok "cron: weekly supply chain security assessment (Monday 9am)"
-  else
-    warn "Could not add supply chain cron. Add manually:"
-    echo "         hermes cron add '0 9 * * 1' 'Run security-review supply chain assessment for $GITHUB_REPO'"
-    CRON_FAIL=1
-  fi
+  ensure_cron "oh-my-hermes-security-daily" "30 8 * * *" \
+    "Use failure-recovery for project ${PROJECT_SLUG:-default}: run security-review daily mode for $GITHUB_REPO: check tracked secret exposure and new Critical dependency advisories. Deduplicate known findings."
+  ensure_cron "oh-my-hermes-security-weekly" "0 9 * * 1" \
+    "Use failure-recovery for project ${PROJECT_SLUG:-default}: run security-review weekly mode for $GITHUB_REPO: full dependency, configuration, and supply-chain assessment."
 else
-  warn "GITHUB_REPO not set — skipping weekly security assessment cron"
+  warn "GITHUB_REPO not set — skipping scheduled security assessments"
 fi
+
+echo ""
+echo "[CHECK] Configure model/provider access for each profile before enabling unattended work."
+echo "        Role/catalog setup does not verify credentials, model calls, or message delivery."
+echo "[CHECK] Review legacy unscoped oh-my-hermes-* jobs manually; they are never deleted automatically."
 
 # ── Summary ───────────────────────────────────────
 echo ""
@@ -325,7 +367,7 @@ elif [ "$WARN" -gt 0 ]; then
   echo "  hermes profile use cto"
   echo "  hermes kanban watch"
 else
-  echo "CTO loop fully configured. Start with:"
+  echo "CTO profiles and jobs configured; runtime access still needs verification. Start with:"
   echo ""
   echo "  hermes gateway start      # start messaging gateway"
   echo "  hermes profile use cto    # switch to CTO profile"
@@ -333,10 +375,10 @@ else
   echo ""
   echo "Then lock persistent focus (Hermes v0.13+):"
   if [ -n "$GITHUB_REPO" ]; then
-    echo "  /goal Manage $GITHUB_REPO as CTO. Triage issues hourly, implement top"
-    echo "        priority, get founder approval before merging. Never ship without YES."
+    echo "  /goal Build, launch, operate, and improve the product in $GITHUB_REPO."
+    echo "        Keep one outcome active, verify it, and ask only at irreversible boundaries."
   else
-    echo "  /goal Manage [owner/repo] as CTO. Triage issues hourly, implement top"
-    echo "        priority, get founder approval before merging. Never ship without YES."
+    echo "  /goal Build, launch, operate, and improve this product. Keep one outcome"
+    echo "        active, verify it, and ask only at irreversible boundaries."
   fi
 fi

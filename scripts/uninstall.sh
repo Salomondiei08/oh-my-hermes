@@ -1,72 +1,48 @@
 #!/usr/bin/env bash
-# uninstall.sh — removes all Oh My Hermes files from ~/.hermes/
-# Does NOT touch Hermes itself, your memory, or your gateway config.
-# Safe to re-run.
+# Remove only unchanged files owned by this installation; retain all profile state.
+set -euo pipefail
+HERMES_DIR="${HERMES_HOME:-$HOME/.hermes}"
+command -v python3 >/dev/null || { echo '[ERROR] python3 is required.'; exit 1; }
+echo 'Oh My Hermes — uninstall unchanged owned files. Custom files and profiles are preserved.'
+read -r -p 'Continue? [y/N] ' confirm
+[[ "$confirm" = y || "$confirm" = Y ]] || { echo 'Cancelled.'; exit 0; }
+python3 - "$HERMES_DIR" <<'PY'
+import hashlib
+import json
+from pathlib import Path
+import sys
 
-set -e
-
-HERMES_DIR="$HOME/.hermes"
-
-echo ""
-echo "Oh My Hermes — Uninstall"
-echo "════════════════════════"
-echo ""
-echo "This removes Oh My Hermes skills, workflows, and agent role definitions."
-echo "It does NOT touch Hermes itself, ~/.hermes/memory/, or gateway config."
-echo ""
-
-SKILLS=(
-  clarify-requirements product-brief create-skill design-handoff choose-engine
-  implement-with-claude-code implement-with-codex deploy-to-vercel connect-supabase
-  setup-monitoring health-check send-notification post-deploy-followup
-  manage-github-issues create-github-pr auto-issue-triage review-github-pr
-  await-merge-approval kanban-task cto-status-report backup-hermes-data
-  security-review onboarding
-)
-
-WORKFLOWS=(idea-to-deploy design-to-code deploy-and-monitor github-ops cto-loop)
-AGENTS=(cto pm dev qa ops security)
-
-echo "Will remove:"
-echo "  Skills:    ${#SKILLS[@]}"
-echo "  Workflows: ${#WORKFLOWS[@]}"
-echo "  Agents:    ${#AGENTS[@]}"
-echo "  Profiles:  cto, pm, dev, qa, ops"
-echo ""
-read -r -p "Continue? [y/N] " confirm
-if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
-  echo "Cancelled."
-  exit 0
+home = Path(sys.argv[1]).resolve()
+manifest = home / '.oh-my-hermes-manifest.json'
+if manifest.is_symlink():
+    sys.exit('[ERROR] Refusing symlinked ownership manifest.')
+if not manifest.exists():
+    print('[SKIP] No ownership manifest; no files removed. Legacy flat skills require manual review.')
+else:
+    owned = json.loads(manifest.read_text())
+    retained = {}
+    for relative, digest in owned.items():
+        path = home / relative
+        # An ownership manifest must never authorize deleting profiles or paths outside the install.
+        if (Path(relative).is_absolute() or '..' in Path(relative).parts
+                or Path(relative).parts[0] not in ('skills', 'workflows', 'agents', 'scripts', 'templates')
+                or any(p.is_symlink() for p in (path, *path.parents) if p != home and home in p.parents)):
+            print(f'[PRESERVED] Unsafe ownership path: {relative}')
+            retained[relative] = digest
+        elif path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == digest:
+            path.unlink()
+            print(f'[REMOVED] {relative}')
+        elif path.exists():
+            print(f'[PRESERVED] Modified: {relative}')
+            retained[relative] = digest
+    if retained:
+        manifest.write_text(json.dumps(retained, indent=2) + '\n')
+    else:
+        manifest.unlink()
+PY
+echo 'Cron jobs for manual dependency review (no jobs are deleted):'
+if command -v hermes >/dev/null; then
+  hermes cron list || echo '[WARN] Could not list jobs; run hermes cron list manually.'
+else
+  echo 'Hermes CLI unavailable; run hermes cron list before removing dependent jobs manually.'
 fi
-
-echo ""
-
-REMOVED=0
-
-for skill in "${SKILLS[@]}"; do
-  f="$HERMES_DIR/skills/$skill.md"
-  if [ -f "$f" ]; then rm "$f"; echo "  removed: skills/$skill.md"; REMOVED=$((REMOVED+1)); fi
-done
-
-for wf in "${WORKFLOWS[@]}"; do
-  f="$HERMES_DIR/workflows/$wf.md"
-  if [ -f "$f" ]; then rm "$f"; echo "  removed: workflows/$wf.md"; REMOVED=$((REMOVED+1)); fi
-done
-
-for agent in "${AGENTS[@]}"; do
-  f="$HERMES_DIR/agents/$agent.md"
-  if [ -f "$f" ]; then rm "$f"; echo "  removed: agents/$agent.md"; REMOVED=$((REMOVED+1)); fi
-done
-
-for profile in cto pm dev qa ops security; do
-  d="$HERMES_DIR/profiles/$profile"
-  if [ -d "$d" ]; then rm -rf "$d"; echo "  removed: profiles/$profile/"; REMOVED=$((REMOVED+1)); fi
-done
-
-echo ""
-echo "Done. Removed $REMOVED items."
-echo ""
-echo "Hermes itself is untouched. Memory, gateway, and cron jobs are intact."
-echo "To clean up cron jobs:"
-echo "  hermes cron list"
-echo "  hermes cron remove [id]"

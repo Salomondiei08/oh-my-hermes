@@ -1,13 +1,14 @@
 ---
 name: cto-status-report
 description: Use when the CTO Agent needs to send the founder a summary of everything in flight, completed, or blocked
-version: 1.0.0
+version: 2.0.1
 tags: [cto, report, kanban, status, founder]
 ---
 
 ## Overview
 
-Reads the full Hermes kanban and production health, then sends the founder a clear status report. Written in plain language — no technical terms, no file names, no error codes.
+Summarizes product outcomes, decisions, release health, security, and actionable
+runtime signals. PR activity appears only when it needs a founder decision.
 
 ## When to Use
 
@@ -31,13 +32,13 @@ Reads the full Hermes kanban and production health, then sends the founder a cle
    ```
 
 2. **Read recent deployment log:**
-   Retrieve from Hermes memory: key `deployment-log` (last 5 entries)
+   Retrieve from Hermes memory: key `project:<slug>:deployment-log` (last 5 entries)
 
 3. **Read health log:**
-   Retrieve from Hermes memory: key `ops-health-log` (last 24 hours)
+   Retrieve from Hermes memory: key `project:<slug>:ops-health-log` (last 24 hours)
 
 4. **Read pending approvals:**
-   Retrieve from Hermes memory: key `pending-approval`
+   Retrieve from Hermes memory: key `project:<slug>:pending-approval`
 
 5. **Compose report** — plain English, lead with what matters most:
 
@@ -52,10 +53,13 @@ Reads the full Hermes kanban and production health, then sends the founder a cle
    - [What Dev Agent is working on] (started [X hours ago])
 
    Waiting for your input:
-   - [PR summary] — reply YES to ship, NO to skip
+   - [Product outcome] — reply YES to ship, NO with feedback, CLOSE, or LATER
 
    Blocked:
    - [What's blocked and why it needs a decision]
+
+   Product signals:
+   - [Meaningful customer, growth, security, or runtime learning]
 
    Everything else is healthy. Production is responding in [Xms].
    ```
@@ -68,7 +72,7 @@ Reads the full Hermes kanban and production health, then sends the founder a cle
 
 6. **Send via `send-notification`** using founder's primary platform.
 
-7. **Save to Hermes memory:** key `status-report-log`, append `{ sentAt: now, blockedCount, awaitingCount, doneCount }`.
+7. **Save to Hermes memory:** key `project:<slug>:status-report-log`, append `{ sentAt: now, blockedCount, awaitingCount, doneCount }`.
 
 ## Tone rules
 

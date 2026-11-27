@@ -1,99 +1,103 @@
 ---
 name: security-review
-description: Use when a PR is ready and needs a security check before founder approval, or when the weekly supply chain assessment is due
-version: 1.0.0
-tags: [security, owasp, review, supply-chain]
+description: Use when a change affects product security, a release needs an independent risk gate, or a scheduled security assessment is due
+version: 2.0.0
+tags: [security, owasp, secrets, dependencies, supply-chain]
+metadata:
+  hermes:
+    tags: [security, owasp, supply-chain]
+    requires_toolsets: [terminal]
 ---
 
 ## Overview
 
-Two modes: PR review (every PR) and supply chain assessment (weekly). Blocks merges on critical findings.
+Runs focused security review in PR, daily, and weekly modes. It prefers proven
+scanners, verifies findings in context, and blocks release only on actionable
+Critical or High risk.
 
 ## When to Use
 
-- A PR is ready for review before founder approval.
-- The weekly supply chain assessment cron fires.
-- A change touches auth, payments, secrets, database access, dependencies, or logging.
+- A change touches auth, authorization, payments, uploads, secrets, APIs,
+  dependencies, database access, RLS, logging, or infrastructure.
+- Reviewer requests the release security gate.
+- Daily or weekly security cron fires.
+- An incident suggests abuse, exposure, or compromised dependencies.
 
 ## Prerequisites
 
-- `GITHUB_TOKEN` with pull request read/write access.
-- `gh` authenticated for the target repository.
-- `npm audit` for Node projects or `pip-audit` for Python projects.
-- Current branch contains the PR diff to review.
+- Repository and target branch or PR diff.
+- Authenticated `gh` for PR comments when applicable.
+- Available scanners from: Gitleaks, Semgrep, OSV-Scanner, package-manager audit.
+  Missing optional tools must be reported but do not prevent manual review.
 
 ## Procedure
 
-### PR review
+### 1. Select scope
 
-Run in order. Stop and block if Critical found.
+- **PR:** changed files, changed dependencies, and affected trust boundaries.
+- **Daily:** tracked files plus newly published Critical dependency advisories.
+- **Weekly:** full source, lockfiles, configuration, and deployment surface.
 
-**1. Secret scan:**
-```bash
-git diff main...HEAD | grep -iE "(api_key|secret|password|token|private_key|SERVICE_KEY|DATABASE_URL)\s*=" | grep -v "your-" | grep -v "example"
-git ls-files | grep -iE "\.env"
-```
+Record scope, commit, tools available, and tools not run.
 
-**2. Dangerous patterns — flag any:**
-- `eval(` in non-test code
-- SQL built by string concatenation
-- `dangerouslySetInnerHTML` without sanitization
-- Supabase `service_role` key referenced client-side
+### 2. Secret exposure
 
-**3. CVE check — only if `package.json` or `requirements.txt` changed:**
-```bash
-npm audit --audit-level=high
-pip-audit --severity high
-```
+Prefer Gitleaks with redacted output. Otherwise inspect tracked files and the
+target diff for credential assignments and committed environment files. Never
+print a detected secret; report file, line, and secret type only.
 
-**4. OWASP check in diff:**
-- Routes that mutate data but skip auth middleware
-- User input passed directly to queries (injection risk)
-- Secrets or PII in `console.log` / logger calls
-- New Supabase tables without RLS enabled
+### 3. Dependency risk
 
-**5. Post findings as PR comment:**
-```bash
-gh pr comment [number] --body "[security findings or 'Security: clean']"
-```
+Prefer OSV-Scanner against source and lockfiles. Use `npm audit`, `pip-audit`, or
+the ecosystem equivalent as a fallback. In PR mode, distinguish newly
+introduced findings from existing debt.
 
-**6. Severity action:**
+### 4. Static and manual review
 
-| Finding | Action |
-|---|---|
-| Critical | `hermes kanban block [id]` + alert founder via gateway immediately |
-| High | Block card + PR comment with specific fix for Dev Agent |
-| Medium | PR comment only — fix before next sprint, does not block |
-| Clean | Hand off to `await-merge-approval` |
+Run Semgrep with trusted rules when available, then review relevant changes for:
 
-### Supply chain assessment (weekly)
+- Missing authentication or object-level authorization
+- User-controlled input reaching SQL, shell, templates, paths, or redirects
+- Unsafe HTML rendering or file uploads
+- Secrets or personal data in clients, logs, errors, or analytics
+- Weak session, cookie, CORS, CSRF, rate-limit, or security-header behavior
+- Service/admin credentials in client code
+- Missing Supabase RLS or policies not scoped to the authenticated owner
+- Payment amount, role, tenant, or ownership trusted from client input
 
-1. `npm audit --audit-level=moderate` or `pip-audit`
-2. List direct deps and flag: publisher changed in last 30 days, name is a near-match of a popular package
-3. Send plain-English summary to founder — packages checked, flags found, action needed
+### 5. Validate and deduplicate
 
-## OWASP clean code rules
+Confirm the affected code path and existing controls. Group repeated scanner
+output by root issue. Do not create a finding solely because a keyword matched.
 
-Flag any of these in generated or reviewed code:
+### 6. Report and route
 
-| OWASP | Bad pattern | Required |
-|---|---|---|
-| A01 Access Control | Unprotected mutation routes | Auth required on all write endpoints |
-| A02 Crypto | MD5/SHA1 for passwords, plaintext secrets | bcrypt/argon2, secrets in env only |
-| A03 Injection | String-concatenated queries | Parameterized queries only |
-| A05 Misconfiguration | `service_role` key client-side | Anon key client-side, service key server-only |
-| A07 Auth | No session expiry | Expiry set, tokens not stored in localStorage |
-| A09 Logging | `console.log(secret)` | Never log credentials or PII |
+Each finding includes severity, behavior, evidence location, impact,
+remediation, re-test, and owner.
+
+- Critical/High: block task, request changes, alert founder.
+- Medium: create tracked remediation with due milestone.
+- Low: include in weekly maintenance summary.
+- Clean: record tools, scope, commit, and result; hand off to Reviewer.
+
+### 7. Re-test
+
+Run the original reproducer and relevant scanner after the fix. Clear the block
+only when evidence passes on the current commit.
 
 ## Pitfalls
 
-- Do not mark a PR clean without checking secrets, auth, input handling, logging, and changed dependencies.
-- Do not paste secrets or raw vulnerable payloads into PR comments.
-- Do not block on Medium findings unless project policy explicitly says Medium is blocking.
-- If audit tooling is unavailable, comment that the tool check did not run and perform the manual checks.
+- Do not call a release clean when required tooling failed without saying so.
+- Do not paste secrets, session data, or weaponized payloads into comments.
+- Do not silently add scanner ignores. Exceptions require reason, owner, and
+  expiration date.
+- Do not treat all dependency CVEs as reachable or all Medium findings as
+  release blockers.
+- Do not run destructive tests against production.
 
 ## Verification
 
-- PR has a security comment (clean or findings listed)
-- Critical/High findings blocked the kanban card
-- Founder notified if merge blocked
+- Scope, commit, tools, and unavailable checks are recorded.
+- Findings are deduplicated and include reproducible evidence.
+- Critical/High findings block release and have an owner.
+- Re-tested fixes pass on the commit presented to Reviewer.

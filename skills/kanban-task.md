@@ -1,7 +1,7 @@
 ---
 name: kanban-task
 description: Use when any agent starts, updates, or completes a unit of work that should be visible on the Hermes kanban board
-version: 1.1.0
+version: 1.1.1
 tags: [kanban, task, tracking, ops, autonomous]
 metadata:
   hermes:
@@ -22,6 +22,8 @@ Creates and updates cards in the Hermes kanban board (`hermes kanban`). Every ag
 ## Prerequisites
 
 - Hermes v0.13+ for heartbeat and zombie recovery behavior.
+- Hermes v2026.5.7+ for durable multi-agent Kanban with automatic retries and
+  per-task recovery context — earlier versions still work but lack retry history.
 - Kanban initialized with `hermes kanban init`.
 - A concrete task title and verifiable acceptance criteria.
 - A target assignee profile such as `pm`, `dev`, `security`, `qa`, or `ops`.
@@ -53,7 +55,7 @@ kanban_create title="Fix: [what]" assignee="dev" body="Issue #[n] | Why: [one se
 
 Acceptance criteria must be a concrete, verifiable check — not "it works." If you cannot write a specific check, ask for clarification before creating the card.
 
-Save returned task ID to Hermes memory: key `task-id-issue-[n]`.
+Save returned task ID to Hermes memory: key `project:<slug>:task-id-issue-[n]`.
 
 **Claim and move to running (Dev Agent):**
 ```bash
@@ -103,7 +105,18 @@ Then load `send-notification` — CTO Agent is alerted immediately.
 
 ## Zombie recovery (v0.13+)
 
-If a Dev Agent crashes mid-task, Hermes detects the missed heartbeat and moves the card back to `ready` automatically. The next worker that claims it gets the prior run history and can continue from the handoff context. No manual intervention is needed unless the card repeatedly blocks or the spawn circuit breaker gives up.
+If a Dev Agent crashes mid-task, Hermes detects the missed heartbeat and moves
+the card back to `ready` automatically. The next worker that claims it gets the
+prior run history and can continue from the handoff context.
+
+## Durable multi-agent Kanban (v2026.5.7+)
+
+Tasks now have a built-in retry ledger. When a worker fails, Hermes records the
+failure context (exit code, last heartbeat, partial output) and automatically
+retries with the next available worker. After a configurable retry limit, the
+card moves to `blocked` and the CTO is notified. No manual intervention is
+needed unless the card reaches its retry limit or the spawn circuit breaker
+gives up.
 
 ## Live monitoring
 

@@ -1,0 +1,25 @@
+name: Test
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      HERMES_HOME: ${{ runner.temp }}/omh-hermes
+      TEST_MODE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate source skills
+        run: bash scripts/validate-skills.sh
+      - name: Run behavioral regression tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Install into isolated Hermes root
+        run: |
+          mkdir -p "$HERMES_HOME"
+          bash install.sh
+      - name: Verify installed discovery paths
+        run: bash scripts/test.sh

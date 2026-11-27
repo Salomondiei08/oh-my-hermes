@@ -1,5 +1,97 @@
 # Changelog
 
+## 2.2.0 - 2026-10-18
+
+- Install discoverable skill directories with ownership-aware updates/uninstall;
+  add real format validation, isolated installation checks, and behavioral tests.
+- Validate project metadata without shell evaluation, reconcile scoped cron jobs,
+  preserve profile identity, and fail safely on incomplete setup or reset.
+- Add private SQLite-safe snapshots and metadata-only dead letters.
+- Separate preview/production procedures, bind release approval to commits, scope
+  memory records, preserve known-good rollback targets, and bound engine handoffs.
+- Repair the separate website's content, fonts, light/dark themes, accessibility,
+  dependency versions and browser verification.
+
+## 2.1.0 - 2026-07-28
+
+### Hermes v0.19 compatibility + new automation-blueprint skill
+
+- Updated `onboarding` to v2.1.0: `hermes setup` wizard for first-time installs,
+  Smart Approvals confirmation step (`approvals.mode smart`), stacked skills
+  documentation (`/skill-a /skill-b`), Bitwarden/1Password vault support, and
+  Checkpoints v2 `/goal` setup.
+- Updated `send-notification` to v1.2.0: Hermes Gateway is now the primary
+  delivery path with durable ledger-based recovery; Slack and Telegram direct
+  API are fallbacks.
+- Updated `await-merge-approval` to v2.1.0: documented durable delivery and
+  Smart Approvals context (routine commands are auto-reviewed; only the
+  production ship decision is a founder gate).
+- Updated `kanban-task` to v1.2.0: documented durable multi-agent Kanban with
+  automatic retries and per-task recovery context (Hermes v2026.5.7+).
+- Updated `failure-recovery` to v1.1.0: added `hermes cron history` for the
+  cron durable audit trail (v0.19+); added gateway auto-resume note.
+- Added `automation-blueprint` skill: defines named, parameterized multi-step
+  recurring tasks as Hermes Blueprints (v0.17+) with YAML step definitions,
+  approval gates, cron scheduling, and resume-from-step recovery.
+- Removed `docs/improvements-to-hermes.md`: stale internal notes, most proposals
+  addressed in Hermes v0.17–0.19.
+- Moved `docs/x-article.md` to `content/x-article.md`: draft article belongs in
+  content/, not technical docs.
+- Updated `docs/setup-guide.md`: minimum Hermes version raised to v0.19+.
+- README: regrouped 37 skills by category (Product, Build, Deliver, Operate,
+  GitHub, Creative, Project) instead of a single 36-row flat table. Added
+  stacked skills example. Added `automation-blueprint` and updated counts.
+- New banner generated via Python/Pillow.
+
+---
+
+## 2.0.0 - 2026-06-19
+
+### Product-building lifecycle
+
+- Reworked `cto-loop` around Understand, Design, Build, Check, Ship, and Learn.
+- Added a seventh permanent profile: Designer.
+- Expanded Product (`pm`) to own positioning, SEO, launch strategy, and content
+  planning while preserving the profile ID.
+- Reframed Dev as Builder and QA as Reviewer without breaking profile names.
+
+### New skills
+
+- `computer-use`: guarded Hermes CUA workflow for native/authenticated GUI work.
+- `product-marketing`: context, positioning, website, SEO, launch, and content.
+- `creative-production`: restrained assets and HyperFrames launch video with
+  music-license evidence.
+- `observe-logs`: recurring, redacted, deduplicated production log review.
+- `publish-with-buffer`: founder-approved scheduling through Buffer's official
+  CLI, including dry runs and post-ID verification.
+- `generate-with-seedance`: budget-gated video generation through the official
+  Volcengine Ark asynchronous task API.
+- `project-switch`, `project-status`, `failure-recovery`, `server-bootstrap`,
+  `ship-this-idea`, and `reset-runtime`: first-run operating layer for fresh
+  servers and multi-project work.
+- `scripts/setup-integrations.sh`: just-in-time secret setup for OpenAI, Buffer,
+  and Seedance in the Hermes environment without requesting keys in chat.
+- Installed helper scripts now include project switching, founder status,
+  dead-letter cron wrapping, safe runtime reset, fresh server bootstrap, and the
+  flagship ship-this-idea launcher.
+
+### Workflow behavior
+
+- Replaced fixed questionnaires with read-first, maximum-three-question intake
+  that continues with documented defaults.
+- Made Designer responsible for `DESIGN.md` and rendered visual verification;
+  external design tools are optional inputs.
+- Added evidence-based Security and Reviewer gates plus YES/NO/CLOSE/LATER
+  founder release choices.
+- Added idempotent named crons for product review, health, logs, reporting, and
+  daily/weekly security.
+- Removed the incomplete tracked `examples/starter-app` because it claimed to be
+  a runnable Next.js starter without the files needed to run.
+- Removed the README Docker production snippet; Oh My Hermes is a Hermes skills
+  pack, not an application container.
+
+---
+
 ## 1.4.0 — 2026-05-09
 
 ### Added — CTO setup script and README corrections
@@ -123,6 +215,3 @@
 **Documentation**
 - `README.md`, `docs/architecture.md`, `docs/installation.md`, `docs/engines.md`
 - `docs/workflows.md`, `docs/design-handoff.md`, `docs/improvements-to-hermes.md`
-
-**Examples**
-- `examples/starter-app/` — minimal Next.js + Supabase + Vercel starter
